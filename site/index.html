@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Observed — They Buried It. We'll Run It.</title>
+<meta name="description" content="Got a story the news won't touch? Drop it here. Real reporters verify it, real editors run it. Free, always. Observer Group Newspapers — Black press since 1974.">
+<style>
+  :root{
+    --black:#121009;
+    --paper:#f5f1e6;
+    --red:#e0261c;
+    --red-deep:#9e1b15;
+    --blue:#2b418f;
+    --blue-deep:#1f3068;
+    --blue-lt:#8ea4e8;
+    --yellow:#f5c543;
+    --grey:#9a958a;
+    --card:#1d1a12;
+    --line:#33302a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--black);
+    color:var(--paper);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:17px;line-height:1.55;
+    overflow-x:hidden;
+  }
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  .page{max-width:680px;margin:0 auto;padding:0 20px}
+
+  /* ===== marquee ticker ===== */
+  .ticker{border-bottom:1px solid var(--line);background:var(--blue);overflow:hidden}
+  .ticker-in{
+    display:flex;gap:34px;white-space:nowrap;width:max-content;
+    padding:9px 0;animation:tick 22s linear infinite;
+    font-weight:800;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);
+  }
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.ticker-in{animation:none}}
+
+  /* ===== mini masthead ===== */
+  .mast{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:rgba(18,16,9,.92);backdrop-filter:blur(10px);z-index:40;
+  }
+  .mast-name{font-family:Georgia,serif;font-weight:700;font-size:1.05rem;letter-spacing:.01em}
+  .mast-name span{color:var(--red)}
+  .mast-est{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-lt)}
+
+  /* ===== hero ===== */
+  .hero{padding:64px 0 40px;text-align:left;position:relative}
+  .hero-kicker{
+    display:inline-block;background:var(--yellow);color:var(--black);
+    font-weight:800;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    padding:6px 12px;transform:rotate(-2deg);margin-bottom:26px;
+  }
+  .hero h1{
+    font-family:Georgia,serif;font-weight:700;
+    font-size:clamp(2.9rem,11vw,5.2rem);
+    line-height:.98;letter-spacing:-.01em;text-transform:uppercase;
+  }
+  .hero h1 .strike{position:relative;white-space:nowrap}
+  .hero h1 .strike::after{
+    content:"";position:absolute;left:-2%;right:-2%;top:52%;height:.09em;
+    background:var(--red);transform:rotate(-1.5deg);
+  }
+  .hero h1 .red{color:var(--red)}
+  .hero p.sub{
+    margin:26px 0 30px;color:var(--grey);font-size:1.08rem;max-width:46ch;
+  }
+  .hero p.sub b{color:var(--paper)}
+  .stamp-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:34px}
+  .sticker{
+    border:2px solid var(--paper);padding:6px 14px;font-weight:800;
+    font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  }
+  .sticker.r{transform:rotate(2deg);border-color:var(--red);color:var(--red)}
+  .sticker.y{transform:rotate(-2deg);border-color:var(--yellow);color:var(--yellow)}
+  .sticker.b{transform:rotate(1.5deg);border-color:var(--blue-lt);color:var(--blue-lt)}
+  .btn{
+    display:inline-block;background:var(--red);color:var(--paper);text-decoration:none;
+    font-weight:800;font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:18px 34px;border:none;cursor:pointer;
+    box-shadow:5px 5px 0 var(--paper);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn:active,.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--paper)}
+  .hero .tiny{margin-top:16px;font-size:.8rem;color:var(--grey)}
+
+  /* ===== receipts strip (lineage, scroll-snap) ===== */
+  .strip-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding:0 20px;max-width:680px;margin:0 auto 14px;
+  }
+  .strip-head h2{font-family:Georgia,serif;font-size:1.3rem}
+  .strip-head span{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--grey)}
+  .lineage{
+    display:flex;gap:14px;overflow-x:auto;padding:4px 20px 22px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .lineage::-webkit-scrollbar{display:none}
+  .l-card{
+    scroll-snap-align:start;flex:0 0 200px;background:var(--card);
+    border:1px solid var(--line);padding:20px 18px;
+  }
+  .l-card .yr{font-weight:800;color:var(--red);font-size:1.5rem;font-family:Georgia,serif}
+  .l-card .nm{font-family:Georgia,serif;font-size:1.02rem;margin:6px 0 8px;line-height:1.3}
+  .l-card p{font-size:.8rem;color:var(--grey);line-height:1.5}
+  .l-card.you{background:var(--blue);border-color:var(--blue)}
+  .l-card.you .yr,.l-card.you .nm{color:var(--paper)}
+  .l-card.you p{color:rgba(245,241,230,.85)}
+
+  /* ===== how it works ===== */
+  .section{padding:56px 0}
+  .sec-label{
+    font-size:.7rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--red);
+    margin-bottom:10px;
+  }
+  .sec-title{font-family:Georgia,serif;font-size:clamp(1.7rem,6vw,2.4rem);line-height:1.1;margin-bottom:30px}
+  .how{display:flex;flex-direction:column;gap:0}
+  .how-item{
+    display:flex;gap:20px;align-items:flex-start;
+    padding:22px 0;border-top:1px solid var(--line);
+  }
+  .how-item:last-child{border-bottom:1px solid var(--line)}
+  .how-num{
+    font-family:Georgia,serif;font-weight:700;font-size:2rem;color:var(--red);
+    min-width:44px;line-height:1;
+  }
+  .how-item h3{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+  .how-item p{font-size:.93rem;color:var(--grey)}
+  .how-item p b{color:var(--paper)}
+
+  /* ===== form ===== */
+  .desk{
+    background:var(--paper);color:var(--black);
+    border-radius:22px 22px 0 0;
+    padding:34px clamp(20px,5vw,40px) 50px;
+    position:relative;
+  }
+  .desk::before{
+    content:"";display:block;width:48px;height:5px;border-radius:99px;
+    background:#cfc9b8;margin:0 auto 26px;
+  }
+  .desk-tag{
+    text-align:center;font-size:.68rem;font-weight:800;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--blue);margin-bottom:6px;
+  }
+  .desk h2.desk-title{font-family:Georgia,serif;text-align:center;font-size:1.7rem;margin-bottom:26px}
+
+  .dots{display:flex;gap:8px;justify-content:center;margin-bottom:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#d8d2c0;transition:all .25s}
+  .dot.on{background:var(--blue);width:26px;border-radius:99px}
+  .draft-note{
+    text-align:center;font-size:.75rem;font-style:italic;color:#8a8472;
+    min-height:1.3em;margin-bottom:20px;opacity:0;transition:opacity .4s;
+  }
+  .draft-note.show{opacity:1}
+
+  .fstep{display:none;animation:slide .3s ease}
+  .fstep.active{display:block}
+  @keyframes slide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .fstep h2{font-family:Georgia,serif;font-size:1.45rem;margin-bottom:4px}
+  .stephint{color:#6e6a5c;font-size:.93rem;margin-bottom:24px}
+
+  .field{margin-bottom:20px}
+  label{display:block;font-weight:700;font-size:.92rem;margin-bottom:7px}
+  label .opt{font-weight:400;color:#8a8472;font-size:.82rem}
+  input[type=text],input[type=email],input[type=tel],select,textarea{
+    width:100%;padding:15px 16px;font-size:1.02rem;font-family:inherit;color:var(--black);
+    background:#fff;border:2px solid var(--black);border-radius:12px;
+    transition:box-shadow .15s;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:4px 4px 0 var(--blue)}
+  textarea{min-height:130px;resize:vertical}
+  .counter{font-size:.75rem;color:#8a8472;text-align:right;margin-top:4px}
+  .err-msg{display:none;color:var(--red-deep);font-size:.85rem;font-weight:700;margin-top:5px}
+  .field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--red-deep);box-shadow:4px 4px 0 var(--red-deep)}
+  .field.invalid .err-msg{display:block}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{
+    border:2px solid var(--black);background:#fff;border-radius:999px;
+    padding:9px 16px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--black);
+    transition:all .12s;
+  }
+  .chip:hover{background:var(--yellow)}
+  .chip.sel{background:var(--black);color:var(--paper)}
+
+  .radio-card{
+    display:flex;gap:12px;align-items:flex-start;border:2px solid var(--black);border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;cursor:pointer;background:#fff;transition:all .12s;
+  }
+  .radio-card:hover{background:#eef1fa}
+  .radio-card.sel{background:#e6ebfa;border-color:var(--blue);box-shadow:4px 4px 0 var(--blue)}
+  .radio-card input{margin-top:4px;accent-color:var(--blue)}
+  .radio-card b{display:block;font-size:.97rem}
+  .radio-card small{color:#6e6a5c;font-size:.84rem;line-height:1.45;display:block}
+
+  .check-row{display:flex;gap:11px;align-items:flex-start;margin-bottom:10px;font-size:.93rem}
+  .check-row input{margin-top:4px;width:17px;height:17px;accent-color:var(--blue);flex-shrink:0}
+  .check-row label{font-weight:400;margin:0;font-size:.93rem}
+
+  .nav-row{display:flex;justify-content:space-between;gap:12px;margin-top:30px}
+  .btn-dark{
+    background:var(--black);color:var(--paper);border:none;cursor:pointer;
+    font-weight:800;font-size:.92rem;letter-spacing:.08em;text-transform:uppercase;
+    padding:16px 28px;border-radius:999px;font-family:inherit;
+    transition:transform .12s, background .15s;
+  }
+  .btn-dark:hover{background:var(--blue);transform:translateY(-1px)}
+  .btn-back{
+    background:none;border:2px solid #c7c1ae;color:#6e6a5c;cursor:pointer;
+    font-weight:700;font-size:.92rem;padding:14px 24px;border-radius:999px;font-family:inherit;
+  }
+  .btn-back:hover{border-color:var(--black);color:var(--black)}
+
+  .review-box{background:#fff;border:2px solid var(--black);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+  .review-box h4{
+    font-size:.66rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);
+    margin-bottom:10px;
+  }
+  .review-box p{font-size:.93rem;margin-bottom:8px;word-wrap:break-word}
+  .review-box p:last-child{margin-bottom:0}
+  .rv-headline{font-family:Georgia,serif;font-size:1.2rem;font-weight:700;line-height:1.3}
+
+  /* confirmation */
+  .confirm{display:none;text-align:center;padding:16px 0;animation:slide .35s ease}
+  .confirm.active{display:block}
+  .stamp{
+    display:inline-block;border:4px solid var(--red-deep);color:var(--red-deep);
+    font-size:1.6rem;font-weight:900;letter-spacing:.3em;text-transform:uppercase;
+    padding:10px 28px;transform:rotate(-5deg);margin-bottom:24px;
+    animation:stampin .4s cubic-bezier(.2,1.6,.4,1);
+  }
+  @keyframes stampin{from{transform:rotate(-5deg) scale(2.4);opacity:0}to{transform:rotate(-5deg) scale(1);opacity:1}}
+  .confirm h2{font-family:Georgia,serif;font-size:1.6rem;margin-bottom:8px}
+  .confirm .sub{color:#6e6a5c;font-size:.95rem}
+  .ref-id{
+    display:inline-block;font-family:"Courier New",monospace;font-weight:700;
+    border:2px dashed var(--black);padding:9px 20px;font-size:1.05rem;
+    margin:14px 0 24px;letter-spacing:.08em;background:#fff;border-radius:8px;
+  }
+  .next-steps{text-align:left;max-width:440px;margin:0 auto;list-style:none}
+  .next-steps li{
+    display:flex;gap:13px;padding:11px 0;font-size:.92rem;color:#6e6a5c;
+    border-bottom:1px solid #e2dcc9;
+  }
+  .next-steps li b{color:var(--black)}
+  .ns-dot{
+    width:26px;height:26px;border-radius:50%;background:var(--black);color:var(--paper);
+    font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+  }
+  .submit-err{
+    display:none;text-align:center;color:var(--red-deep);font-weight:700;
+    font-size:.9rem;margin-top:14px;
+  }
+  .submit-err.show{display:block}
+
+  /* ===== FAQ ===== */
+  .faq-section{background:var(--paper);color:var(--black);padding:56px 0 70px}
+  .faq-item{border-bottom:2px solid var(--black)}
+  .faq-item:first-of-type{border-top:2px solid var(--black)}
+  .faq-q{
+    width:100%;background:none;border:none;font-family:inherit;
+    font-size:1.02rem;font-weight:700;color:var(--black);text-align:left;
+    padding:18px 4px;cursor:pointer;display:flex;justify-content:space-between;gap:14px;align-items:center;
+  }
+  .faq-q::after{content:"+";font-size:1.6rem;color:var(--blue);font-weight:400;transition:transform .25s;flex-shrink:0}
+  .faq-item.open .faq-q::after{transform:rotate(45deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .faq-a p{padding:0 4px 20px;color:#55503f;font-size:.95rem;max-width:62ch}
+
+  /* ===== footer ===== */
+  footer{padding:46px 20px 120px;text-align:center;border-top:1px solid var(--line)}
+  .foot-brand{font-family:Georgia,serif;font-size:1.25rem;font-weight:700;margin-bottom:8px}
+  .foot-brand span{color:var(--red)}
+  footer p{color:var(--grey);font-size:.85rem;max-width:46ch;margin:0 auto 20px}
+  .foot-links{display:flex;justify-content:center;flex-wrap:wrap;gap:18px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+  .foot-links a{color:var(--paper);text-decoration:none}
+  .foot-links a:hover{color:var(--blue-lt)}
+  footer small{display:block;margin-top:24px;font-size:.7rem;color:#6b675c}
+
+  /* ===== sticky CTA bar ===== */
+  .sticky-cta{
+    position:fixed;bottom:0;left:0;right:0;z-index:60;
+    background:var(--blue);padding:14px 20px;
+    display:flex;justify-content:center;
+    transform:translateY(110%);transition:transform .3s ease;
+  }
+  .sticky-cta.show{transform:none}
+  .sticky-cta a{
+    color:var(--paper);text-decoration:none;font-weight:800;
+    font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;
+  }
+  .sticky-cta a span{opacity:.85;font-weight:600;text-transform:none;letter-spacing:0}
+</style>
+</head>
+<body>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-in">
+    <span>Buried &#10022; Missed &#10022; Refused &#10022; Tell it anyway</span>
+    <span>Free forever &#10022; Real reporters &#10022; Your block, your byline</span>
+    <span>Buried &#10022; Missed &#10022; Refused &#10022; Tell it anyway</span>
+    <span>Free forever &#10022; Real reporters &#10022; Your block, your byline</span>
+  </div>
+</div>
+
+<header class="mast">
+  <div>
+    <div class="mast-name serif">News <span>Observed</span></div>
+    <div class="mast-est">Black press since 1974 &middot; OGNSC</div>
+  </div>
+  <a class="btn" style="padding:10px 18px;font-size:.78rem;box-shadow:3px 3px 0 var(--paper)" href="#submit">Drop a Story</a>
+</header>
+
+<section class="hero page">
+  <span class="hero-kicker">The news won't touch it? Bet.</span>
+  <h1 class="serif">They <span class="strike">buried</span> it.<br>We'll <span class="red">run</span> it.</h1>
+  <p class="sub">
+    Something went down in your community and the big outlets looked away?
+    Drop it here. <b>Real reporters dig into it. Real editors run it.</b>
+    You talk, we verify, the truth prints. That's the whole deal.
+  </p>
+  <div class="stamp-row">
+    <span class="sticker r">100% Free</span>
+    <span class="sticker y">Anon OK</span>
+    <span class="sticker b">Fact-Checked</span>
+  </div>
+  <a class="btn" href="#submit">Tell Your Story &rarr;</a>
+  <p class="tiny">No account. No fee. ~5 minutes. A human reads every single one.</p>
+</section>
+
+<section class="section" style="padding-bottom:30px">
+  <div class="strip-head">
+    <h2 class="serif">We've been doing this since 1827.</h2>
+    <span>swipe &rarr;</span>
+  </div>
+  <div class="lineage">
+    <div class="l-card">
+      <div class="yr">1827</div>
+      <div class="nm serif">Freedom's Journal</div>
+      <p>The first Black-owned newspaper in America. "We wish to plead our own cause."</p>
+    </div>
+    <div class="l-card">
+      <div class="yr">1847</div>
+      <div class="nm serif">The North Star</div>
+      <p>Frederick Douglass printed what the country refused to hear.</p>
+    </div>
+    <div class="l-card">
+      <div class="yr">1905</div>
+      <div class="nm serif">Chicago Defender</div>
+      <p>Smuggled south by Pullman porters when distributing it was dangerous.</p>
+    </div>
+    <div class="l-card">
+      <div class="yr">1907</div>
+      <div class="nm serif">Pittsburgh Courier</div>
+      <p>Ran the Double V campaign — victory abroad, victory at home.</p>
+    </div>
+    <div class="l-card">
+      <div class="yr">1945</div>
+      <div class="nm serif">Ebony</div>
+      <p>Put Black life, joy, and excellence on every coffee table in America.</p>
+    </div>
+    <div class="l-card">
+      <div class="yr">1974</div>
+      <div class="nm serif">The Observer</div>
+      <p>Bakersfield, Los Angeles, and the Valleys — 50+ years strong.</p>
+    </div>
+    <div class="l-card you">
+      <div class="yr">Now</div>
+      <div class="nm serif">Your story.</div>
+      <p>The tradition continues with what you know and they won't print.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section page" id="how">
+  <div class="sec-label">How it works</div>
+  <h2 class="sec-title serif">You talk. We verify.<br>The truth prints.</h2>
+  <div class="how">
+    <div class="how-item">
+      <div class="how-num">01</div>
+      <div>
+        <h3>Drop the story</h3>
+        <p>Your words, your way. Voice-memo energy is fine — <b>no writing skills needed.</b></p>
+      </div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">02</div>
+      <div>
+        <h3>We pull the receipts</h3>
+        <p>Reporters check records, call sources, verify every claim. <b>Nothing runs unchecked.</b></p>
+      </div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">03</div>
+      <div>
+        <h3>We slide in your inbox</h3>
+        <p>If the story has gaps, a reporter emails you real questions. <b>Your answers shape the piece.</b></p>
+      </div>
+    </div>
+    <div class="how-item">
+      <div class="how-num">04</div>
+      <div>
+        <h3>It runs</h3>
+        <p>Editors approve it, the story publishes, <b>the record gets corrected.</b> On your name or anonymous — your call.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SUBMISSION ===== -->
+<section class="desk" id="submit">
+  <div class="desk-tag">The Submission Desk &middot; Form NO-1 &middot; Free</div>
+  <h2 class="desk-title serif">Okay. Tell us everything.</h2>
+
+  <div class="dots" aria-hidden="true">
+    <div class="dot on" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+  </div>
+  <div class="draft-note" id="draft-saved">draft saved, you're good</div>
+
+  <form id="story-form" novalidate>
+
+    <!-- STEP 1 -->
+    <div class="fstep active" data-step="1">
+      <h2 class="serif">What happened?</h2>
+      <p class="stephint">Don't overthink it. Type it like you'd text it.</p>
+
+      <div class="field" id="f-headline">
+        <label for="headline">The story in one line</label>
+        <input type="text" id="headline" maxlength="120" placeholder="e.g., City closed our only park with zero notice and zero plan">
+        <div class="err-msg">Give us the one-liner first.</div>
+      </div>
+
+      <div class="field" id="f-story">
+        <label for="story">Now the whole thing</label>
+        <textarea id="story" maxlength="5000" placeholder="What went down? Who's involved? Why should your community care?"></textarea>
+        <div class="counter"><span id="story-count">0</span> / 5000</div>
+        <div class="err-msg">We need at least a few sentences to work with.</div>
+      </div>
+
+      <div class="field" id="f-category">
+        <label>What kind of story? <span class="opt">(tap one)</span></label>
+        <div class="chips" id="category-chips">
+          <button type="button" class="chip">Local News</button>
+          <button type="button" class="chip">Injustice &amp; Accountability</button>
+          <button type="button" class="chip">Community</button>
+          <button type="button" class="chip">Education</button>
+          <button type="button" class="chip">Health</button>
+          <button type="button" class="chip">Housing</button>
+          <button type="button" class="chip">Business</button>
+          <button type="button" class="chip">Sports</button>
+          <button type="button" class="chip">Arts &amp; Culture</button>
+          <button type="button" class="chip">Other</button>
+        </div>
+        <div class="err-msg">Tap a category real quick.</div>
+      </div>
+
+      <div class="field" id="f-location">
+        <label for="location">Where?</label>
+        <input type="text" id="location" maxlength="120" placeholder="Neighborhood, city, or area">
+        <div class="err-msg">Tell us where this happened.</div>
+      </div>
+
+      <div class="field">
+        <label for="edition">Closest Observer edition <span class="opt">(optional)</span></label>
+        <select id="edition">
+          <option value="">Not sure / Other</option>
+          <option>Bakersfield Edition</option>
+          <option>Los Angeles Edition</option>
+          <option>Valleys Edition</option>
+        </select>
+      </div>
+
+      <div class="nav-row">
+        <span></span>
+        <button type="button" class="btn-dark" onclick="goStep(2)">Next &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="fstep" data-step="2">
+      <h2 class="serif">Got receipts?</h2>
+      <p class="stephint">All optional. The digging is literally our job — but receipts make it faster.</p>
+
+      <div class="field">
+        <label>What do you have? <span class="opt">(check what applies)</span></label>
+        <div class="check-row"><input type="checkbox" id="ev-photos"><label for="ev-photos">Photos or video</label></div>
+        <div class="check-row"><input type="checkbox" id="ev-docs"><label for="ev-docs">Documents, letters, or records</label></div>
+        <div class="check-row"><input type="checkbox" id="ev-witness"><label for="ev-witness">People who saw it and would talk</label></div>
+        <div class="check-row"><input type="checkbox" id="ev-social"><label for="ev-social">Posts about it on social</label></div>
+      </div>
+
+      <div class="field">
+        <label for="links">Links <span class="opt">(optional)</span></label>
+        <textarea id="links" maxlength="2000" style="min-height:80px" placeholder="Paste anything — posts, articles, videos, public records..."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="contacts">Who should we talk to? <span class="opt">(optional)</span></label>
+        <textarea id="contacts" maxlength="1000" style="min-height:80px" placeholder="Names + how to reach them. Only if they're cool with it or you think they'd want to speak."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Has any outlet covered this?</label>
+        <label class="radio-card"><input type="radio" name="covered" value="no"><span><b>Nope. That's the problem.</b><small>They buried it, missed it, or flat-out refused.</small></span></label>
+        <label class="radio-card"><input type="radio" name="covered" value="partial"><span><b>Kind of, but they got it wrong.</b><small>The coverage exists but it's missing the real story.</small></span></label>
+        <label class="radio-card"><input type="radio" name="covered" value="yes"><span><b>Yes, but it deserves better.</b><small>Needs more depth, or our community's perspective.</small></span></label>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn-back" onclick="goStep(1)">&larr; Back</button>
+        <button type="button" class="btn-dark" onclick="goStep(3)">Next &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="fstep" data-step="3">
+      <h2 class="serif">Last thing — who are you?</h2>
+      <p class="stephint">We protect sources. Period. We just need a way to reach you — your name never prints without your OK.</p>
+
+      <div class="field" id="f-name">
+        <label for="name">Name</label>
+        <input type="text" id="name" maxlength="80" autocomplete="name" placeholder="First and last">
+        <div class="err-msg">We need a name — it stays private unless you say otherwise.</div>
+      </div>
+
+      <div class="field" id="f-email">
+        <label for="email">Email</label>
+        <input type="email" id="email" maxlength="120" autocomplete="email" placeholder="you@example.com">
+        <div class="err-msg">Real email please — it's how the reporter reaches you.</div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone <span class="opt">(optional)</span></label>
+        <input type="tel" id="phone" maxlength="20" autocomplete="tel" placeholder="(555) 555-5555">
+      </div>
+
+      <div class="field">
+        <label for="relation">How do you know about this?</label>
+        <select id="relation">
+          <option value="">Pick one...</option>
+          <option>It happened to me</option>
+          <option>I saw it happen</option>
+          <option>It happened to someone I know</option>
+          <option>I'm an advocate or organizer</option>
+          <option>Heard about it in the community</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Your name in the story?</label>
+        <label class="radio-card"><input type="radio" name="privacy" value="named" checked><span><b>Put my name on it.</b><small>I'm good being identified as a source if it runs.</small></span></label>
+        <label class="radio-card"><input type="radio" name="privacy" value="anon"><span><b>Keep me anonymous.</b><small>Use the story — never my name or anything that IDs me.</small></span></label>
+        <label class="radio-card"><input type="radio" name="privacy" value="ask"><span><b>Ask me first.</b><small>Talk to me before deciding how I show up.</small></span></label>
+      </div>
+
+      <div class="field" id="f-consent">
+        <div class="check-row">
+          <input type="checkbox" id="consent">
+          <label for="consent">A reporter can email me follow-up questions, and everything I shared is true as far as I know.</label>
+        </div>
+        <div class="err-msg">Check this box before you file.</div>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn-back" onclick="goStep(2)">&larr; Back</button>
+        <button type="button" class="btn-dark" onclick="goStep(4)">Review &rarr;</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 : REVIEW -->
+    <div class="fstep" data-step="4">
+      <h2 class="serif">Read it back.</h2>
+      <p class="stephint">Every reporter reads it back before filing. Look right?</p>
+
+      <div class="review-box">
+        <h4>The Story</h4>
+        <p class="rv-headline" id="rv-headline"></p>
+        <p id="rv-story"></p>
+        <p><b>Section:</b> <span id="rv-category"></span> &nbsp;&middot;&nbsp; <b>Where:</b> <span id="rv-location"></span></p>
+      </div>
+      <div class="review-box">
+        <h4>You</h4>
+        <p><span id="rv-name"></span> &middot; <span id="rv-email"></span></p>
+        <p><b>Your name in print:</b> <span id="rv-privacy"></span></p>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn-back" onclick="goStep(3)">&larr; Back</button>
+        <button type="button" class="btn-dark" id="submit-btn" onclick="submitStory()" style="background:var(--red-deep)">File It</button>
+      </div>
+      <p class="submit-err" id="submit-err">Couldn't file it — check your connection and tap File It again. Your draft is saved.</p>
+    </div>
+
+    <!-- CONFIRMATION -->
+    <div class="confirm" id="confirm">
+      <div class="stamp">Filed</div>
+      <h2>It's on the desk.</h2>
+      <p class="sub">Screenshot this — it's your reference number:</p>
+      <div class="ref-id" id="ref-id">NO-000000</div>
+      <ul class="next-steps">
+        <li><span class="ns-dot">1</span><span><b>Within days,</b> the newsroom starts digging into your story.</span></li>
+        <li><span class="ns-dot">2</span><span><b>Watch your inbox</b> — a reporter may email you real follow-up questions.</span></li>
+        <li><span class="ns-dot">3</span><span><b>If it checks out,</b> it goes to the editors — and the story runs.</span></li>
+      </ul>
+      <p style="margin-top:24px;font-size:.92rem">Got another one? <a href="#" onclick="resetForm();return false" style="color:var(--red-deep);font-weight:800">File another &rarr;</a></p>
+    </div>
+
+  </form>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="faq-section">
+  <div class="page">
+    <div class="sec-label">Real questions</div>
+    <h2 class="sec-title serif">Before you ask —</h2>
+    <div class="faq-item">
+      <button class="faq-q" type="button">Is this actually free?</button>
+      <div class="faq-a"><p>Yes. Always. The paper runs on ads and subscriptions — never on charging the people whose stories we tell. There's no catch and no premium tier.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button">Can I stay anonymous fr?</button>
+      <div class="faq-a"><p>Yes. You pick how you show up: named, anonymous, or "ask me first." Anonymous means your name and anything that could ID you never prints. We just need an email so a reporter can verify details with you privately.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button">Will my story definitely run?</button>
+      <div class="faq-a"><p>Honest answer: not guaranteed. Every submission gets researched, but stories only run when the facts check out and editors approve. Even if yours doesn't run, it helps us spot patterns in the community.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button">What kind of stories do you want?</button>
+      <div class="faq-a"><p>The ones the big outlets buried, missed, or refused to touch — injustice, neighborhood fights, unsung people doing real work, local wins. Bakersfield, LA, the Valleys. If it matters to your block, it matters here.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button">I'm not a writer. Does that matter?</button>
+      <div class="faq-a"><p>Zero. You're the source — writing is our job. Tell it like you'd tell your group chat. Honest detail beats fancy words every single time.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" type="button">What happens after I hit submit?</button>
+      <div class="faq-a"><p>Reporters research your claims, then email you specific follow-up questions if anything's missing. Your answers get built into a full draft that goes to the editors. You'll hear from us by email the whole way.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-brand serif">News <span>Observed</span></div>
+  <p>The community submission desk of Observer Group Newspapers of Southern California. Carrying the Black press tradition — Freedom's Journal to your feed — since 1974.</p>
+  <nav class="foot-links">
+    <a href="https://ognsc.com/">OGNSC</a>
+    <a href="https://ognsc.com/subscriptions/">Subscribe</a>
+    <a href="https://www.instagram.com/ognscinc/">Instagram</a>
+    <a href="https://ognsc.com/contact-us/">Contact</a>
+    <a href="https://app.ribbon.giving/links/K6yBvR">Donate</a>
+  </nav>
+  <small>&copy; 2026 Observer Group Newspapers of Southern California, Inc.</small>
+</footer>
+
+<div class="sticky-cta" id="sticky-cta">
+  <a href="#submit">Tell your story &rarr; <span>free, ~5 min</span></a>
+</div>
+
+<script>
+(function(){
+  var currentStep = 1;
+  var category = "";
+  var STORAGE_KEY = "onp_draft_v1";
+
+  /* ---- Supabase (publishable key — safe to ship in client code) ---- */
+  var SUPABASE_URL = "https://onntihjhcqscbjktnifk.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_eFNYmG-Jdrqurk5CjS85pA_qTO7WMgh";
+
+  /* ---- sticky CTA: show after hero, hide at form ---- */
+  var cta = document.getElementById("sticky-cta");
+  var desk = document.getElementById("submit");
+  function ctaCheck(){
+    var y = window.scrollY;
+    var deskTop = desk.getBoundingClientRect().top;
+    var pastHero = y > 420;
+    var atForm = deskTop < window.innerHeight * .85;
+    cta.classList.toggle("show", pastHero && !atForm);
+  }
+  window.addEventListener("scroll", ctaCheck, {passive:true});
+  ctaCheck();
+
+  /* ---- step navigation ---- */
+  window.goStep = function(n){
+    if(n > currentStep && !validateStep(currentStep)) return;
+    if(n === 4) fillReview();
+    document.querySelectorAll(".fstep").forEach(function(s){
+      s.classList.toggle("active", +s.dataset.step === n);
+    });
+    currentStep = n;
+    for(var i=1;i<=4;i++){
+      document.getElementById("dot"+i).classList.toggle("on", n >= i);
+    }
+    document.getElementById("submit").scrollIntoView({behavior:"smooth"});
+  };
+
+  /* ---- validation ---- */
+  function setInvalid(id, bad){
+    var f = document.getElementById(id);
+    if(f) f.classList.toggle("invalid", bad);
+    return !bad;
+  }
+  function validateStep(n){
+    var ok = true;
+    if(n === 1){
+      ok = setInvalid("f-headline", !val("headline")) && ok;
+      ok = setInvalid("f-story", val("story").length < 30) && ok;
+      ok = setInvalid("f-category", !category) && ok;
+      ok = setInvalid("f-location", !val("location")) && ok;
+    }
+    if(n === 3){
+      ok = setInvalid("f-name", !val("name")) && ok;
+      var em = val("email");
+      ok = setInvalid("f-email", !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) && ok;
+      ok = setInvalid("f-consent", !document.getElementById("consent").checked) && ok;
+    }
+    if(!ok){
+      var firstBad = document.querySelector(".field.invalid");
+      if(firstBad) firstBad.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+    return ok;
+  }
+  function val(id){ return (document.getElementById(id).value || "").trim(); }
+
+  /* ---- category chips ---- */
+  document.getElementById("category-chips").addEventListener("click", function(e){
+    if(!e.target.classList.contains("chip")) return;
+    document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("sel"); });
+    e.target.classList.add("sel");
+    category = e.target.textContent;
+    setInvalid("f-category", false);
+    saveDraft();
+  });
+
+  /* ---- radio cards ---- */
+  document.querySelectorAll(".radio-card input").forEach(function(r){
+    r.addEventListener("change", function(){
+      document.querySelectorAll('.radio-card input[name="'+r.name+'"]').forEach(function(o){
+        o.closest(".radio-card").classList.toggle("sel", o.checked);
+      });
+      saveDraft();
+    });
+  });
+  document.querySelector('.radio-card input[name="privacy"][value="named"]').closest(".radio-card").classList.add("sel");
+
+  /* ---- char counter ---- */
+  document.getElementById("story").addEventListener("input", function(){
+    document.getElementById("story-count").textContent = this.value.length;
+  });
+
+  /* ---- review ---- */
+  function radioVal(name){
+    var c = document.querySelector('input[name="'+name+'"]:checked');
+    return c ? c.value : "";
+  }
+  function fillReview(){
+    var st = val("story");
+    document.getElementById("rv-headline").textContent = val("headline");
+    document.getElementById("rv-story").textContent = st.length > 320 ? st.slice(0,320) + "…" : st;
+    document.getElementById("rv-category").textContent = category || "—";
+    document.getElementById("rv-location").textContent = val("location") || "—";
+    document.getElementById("rv-name").textContent = val("name");
+    document.getElementById("rv-email").textContent = val("email");
+    var pv = {named:"Named", anon:"Anonymous", ask:"Ask me first"};
+    document.getElementById("rv-privacy").textContent = pv[radioVal("privacy")] || "—";
+  }
+
+  /* ---- submit ---- */
+  window.submitStory = function(){
+    var btn = document.getElementById("submit-btn");
+    var errBox = document.getElementById("submit-err");
+    btn.disabled = true;
+    btn.textContent = "Filing…";
+    errBox.classList.remove("show");
+
+    var ref = "NO-" + Math.random().toString(36).slice(2,8).toUpperCase();
+    var payload = {
+      ref_id: ref,
+      headline: val("headline"), story: val("story"), category: category,
+      location: val("location"), edition: val("edition") || null,
+      evidence: ["photos","docs","witness","social"].filter(function(k){return document.getElementById("ev-"+k).checked;}),
+      links: val("links") || null, contacts: val("contacts") || null,
+      covered: radioVal("covered") || null,
+      submitter_name: val("name"), submitter_email: val("email"),
+      submitter_phone: val("phone") || null,
+      relation: val("relation") || null, privacy: radioVal("privacy"),
+      consent: document.getElementById("consent").checked
+    };
+
+    fetch(SUPABASE_URL + "/rest/v1/submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(payload)
+    }).then(function(res){
+      if(!res.ok) throw new Error("insert failed: " + res.status);
+      document.getElementById("ref-id").textContent = ref;
+      document.querySelectorAll(".fstep").forEach(function(s){ s.classList.remove("active"); });
+      document.getElementById("confirm").classList.add("active");
+      document.querySelector(".dots").style.display = "none";
+      document.getElementById("draft-saved").style.display = "none";
+      clearDraft();
+      document.getElementById("submit").scrollIntoView({behavior:"smooth"});
+    }).catch(function(){
+      errBox.classList.add("show");
+      btn.disabled = false;
+      btn.textContent = "File It";
+    });
+  };
+
+  window.resetForm = function(){
+    document.getElementById("story-form").reset();
+    category = "";
+    document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("sel"); });
+    document.querySelectorAll(".radio-card").forEach(function(c){ c.classList.remove("sel"); });
+    document.querySelector('.radio-card input[name="privacy"][value="named"]').closest(".radio-card").classList.add("sel");
+    document.getElementById("story-count").textContent = "0";
+    document.getElementById("confirm").classList.remove("active");
+    document.querySelector(".dots").style.display = "";
+    document.getElementById("draft-saved").style.display = "";
+    document.getElementById("submit-btn").disabled = false;
+    document.getElementById("submit-btn").textContent = "File It";
+    goStep(1);
+  };
+
+  /* ---- draft autosave ---- */
+  var saveTimer, badgeTimer;
+  function saveDraft(){
+    try{
+      var data = {
+        headline: val("headline"), story: val("story"), category: category,
+        location: val("location"), links: val("links"), contacts: val("contacts"),
+        name: val("name"), email: val("email")
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      var b = document.getElementById("draft-saved");
+      b.classList.add("show");
+      clearTimeout(badgeTimer);
+      badgeTimer = setTimeout(function(){ b.classList.remove("show"); }, 1600);
+    }catch(e){}
+  }
+  function loadDraft(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      var d = JSON.parse(raw);
+      ["headline","story","location","links","contacts","name","email"].forEach(function(k){
+        if(d[k]) document.getElementById(k).value = d[k];
+      });
+      if(d.story) document.getElementById("story-count").textContent = d.story.length;
+      if(d.category){
+        document.querySelectorAll(".chip").forEach(function(c){
+          if(c.textContent === d.category){ c.classList.add("sel"); category = d.category; }
+        });
+      }
+    }catch(e){}
+  }
+  function clearDraft(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} }
+  document.getElementById("story-form").addEventListener("input", function(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveDraft, 800);
+  });
+  loadDraft();
+
+  /* ---- FAQ accordion ---- */
+  document.querySelectorAll(".faq-q").forEach(function(q){
+    q.addEventListener("click", function(){
+      var item = q.parentElement;
+      var ans = item.querySelector(".faq-a");
+      var open = item.classList.contains("open");
+      document.querySelectorAll(".faq-item.open").forEach(function(o){
+        o.classList.remove("open");
+        o.querySelector(".faq-a").style.maxHeight = "0";
+      });
+      if(!open){
+        item.classList.add("open");
+        ans.style.maxHeight = ans.scrollHeight + "px";
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
