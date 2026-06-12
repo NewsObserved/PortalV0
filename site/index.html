@@ -136,6 +136,34 @@
   .how-item p{font-size:.93rem;color:var(--grey)}
   .how-item p b{color:var(--paper)}
 
+  /* ===== photo proof ===== */
+  .photo-sec{padding:10px 0 64px;position:relative}
+  .photo-frame{
+    position:relative;background:var(--paper);padding:12px 12px 0;
+    transform:rotate(-1.4deg);
+    box-shadow:8px 8px 0 var(--blue);
+    max-width:560px;margin:0 auto;
+  }
+  .photo-frame img{width:100%;display:block}
+  .photo-cap{
+    padding:14px 6px 16px;text-align:center;color:var(--black);
+    font-family:Georgia,serif;font-style:italic;font-size:.95rem;line-height:1.4;
+  }
+  .photo-sticker{
+    position:absolute;top:-16px;right:-10px;z-index:2;
+    background:var(--yellow);color:var(--black);
+    font-weight:800;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+    padding:8px 14px;transform:rotate(4deg);
+  }
+  .photo-sticker.b2{
+    top:auto;right:auto;bottom:34px;left:-12px;
+    background:var(--red);color:var(--paper);transform:rotate(-3deg);
+  }
+  .photo-lede{
+    text-align:center;max-width:42ch;margin:0 auto 30px;color:var(--grey);font-size:1.02rem;
+  }
+  .photo-lede b{color:var(--paper)}
+
   /* ===== form ===== */
   .desk{
     background:var(--paper);color:var(--black);
@@ -277,6 +305,25 @@
   .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
   .faq-a p{padding:0 4px 20px;color:#55503f;font-size:.95rem;max-width:62ch}
 
+  /* ===== subscribe ===== */
+  .sub-sec{background:var(--blue);padding:56px 0}
+  .sub-in{max-width:680px;margin:0 auto;padding:0 20px;text-align:center}
+  .sub-kicker{
+    display:inline-block;background:var(--yellow);color:var(--black);
+    font-weight:800;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+    padding:6px 12px;transform:rotate(-1.5deg);margin-bottom:20px;
+  }
+  .sub-sec h2{font-family:Georgia,serif;font-size:clamp(1.7rem,6vw,2.4rem);line-height:1.1;margin-bottom:12px;color:var(--paper)}
+  .sub-sec p{color:rgba(245,241,230,.85);font-size:1rem;max-width:46ch;margin:0 auto 28px}
+  .btn-sub{
+    display:inline-block;background:var(--paper);color:var(--blue);text-decoration:none;
+    font-weight:800;font-size:.95rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:17px 34px;box-shadow:5px 5px 0 var(--black);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn-sub:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--black)}
+  .sub-tiny{margin-top:14px;font-size:.78rem;color:rgba(245,241,230,.6)}
+
   /* ===== footer ===== */
   footer{padding:46px 20px 120px;text-align:center;border-top:1px solid var(--line)}
   .foot-brand{font-family:Georgia,serif;font-size:1.25rem;font-weight:700;margin-bottom:8px}
@@ -414,6 +461,17 @@
         <p>Editors approve it, the story publishes, <b>the record gets corrected.</b> On your name or anonymous — your call.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== PHOTO PROOF ===== -->
+<section class="photo-sec page" id="photo-sec">
+  <p class="photo-lede"><b>This isn't an app pretending to be a newspaper.</b> It's a real paper, in real hands, on real tables — and your story belongs in it.</p>
+  <div class="photo-frame">
+    <span class="photo-sticker">In Print Weekly</span>
+    <span class="photo-sticker b2">Your Story Here</span>
+    <img src="img/community-paper.jpg" alt="A reader with a printed copy of The News Observed at a neighborhood coffee shop">
+    <div class="photo-cap">Black-owned. Community-focused. People-powered. &mdash; read wherever the community gathers.</div>
   </div>
 </section>
 
@@ -617,6 +675,7 @@
         <li><span class="ns-dot">3</span><span><b>If it checks out,</b> it goes to the editors — and the story runs.</span></li>
       </ul>
       <p style="margin-top:24px;font-size:.92rem">Got another one? <a href="#" onclick="resetForm();return false" style="color:var(--red-deep);font-weight:800">File another &rarr;</a></p>
+      <p style="margin-top:12px;font-size:.92rem;color:#6e6a5c">While you're here — <a href="https://ognsc.com/subscriptions/" style="color:var(--blue);font-weight:800">get the paper in your inbox, free &rarr;</a></p>
     </div>
 
   </form>
@@ -654,12 +713,24 @@
   </div>
 </section>
 
+<!-- ===== SUBSCRIBE ===== -->
+<section class="sub-sec" id="subscribe">
+  <div class="sub-in">
+    <span class="sub-kicker">Free weekly newsletter</span>
+    <h2 class="serif">Stay in the know.</h2>
+    <p>Local and national news from Southern California's Black press — community stories, accountability reporting, and the headlines that matter, delivered to your inbox every week. No spam, unsubscribe anytime.</p>
+    <a class="btn-sub" href="https://ognsc.com/subscriptions/">Subscribe — It's Free &rarr;</a>
+    <p class="sub-tiny">Trusted news since 1974.</p>
+  </div>
+</section>
+
 <footer>
   <div class="foot-brand serif">News <span>Observed</span></div>
   <p>The community submission desk of Observer Group Newspapers of Southern California. Carrying the Black press tradition — Freedom's Journal to your feed — since 1974.</p>
   <nav class="foot-links">
     <a href="https://ognsc.com/">OGNSC</a>
     <a href="https://ognsc.com/subscriptions/">Subscribe</a>
+    <a href="https://www.tiktok.com/@ognsc">TikTok</a>
     <a href="https://www.instagram.com/ognscinc/">Instagram</a>
     <a href="https://ognsc.com/contact-us/">Contact</a>
     <a href="https://app.ribbon.giving/links/K6yBvR">Donate</a>
