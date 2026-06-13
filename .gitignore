@@ -17,3 +17,6 @@ next-env.d.ts
 # misc
 .DS_Store
 *.tsbuildinfo
+
+# Claude Code local settings
+.claude/settings.local.json
