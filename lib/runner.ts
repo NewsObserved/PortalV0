@@ -29,6 +29,7 @@ interface FollowUpRow {
   round: number;
   questions: string[];
   response_text: string | null;
+  status: string;
 }
 
 export interface RunResult {
@@ -58,20 +59,22 @@ export async function processSubmission(submissionId: string): Promise<RunResult
   // Prior follow-up rounds (for round counting + context on re-runs).
   const { data: priorFollowUps } = await db
     .from("follow_ups")
-    .select("round, questions, response_text")
+    .select("round, questions, response_text, status")
     .eq("submission_id", sub.id)
     .order("round", { ascending: true });
   const followUps = (priorFollowUps ?? []) as FollowUpRow[];
   const roundsUsed = followUps.length;
+  // If a prior round was marked stalled (submitter didn't reply in time), force a draft.
+  const stalled = followUps.some((f) => f.status === "stalled");
 
   try {
     const research = await researchPhase(sub, followUps);
     await logRun(db, sub.id, "research", research.usage, "ok");
 
-    const draft = await draftPhase(sub, followUps, research.memo, research.sources);
+    const draft = await draftPhase(sub, followUps, research.memo, research.sources, stalled);
     await logRun(db, sub.id, "draft", draft.usage, "ok");
 
-    return await applyOutcome(db, sub, roundsUsed, draft.result);
+    return await applyOutcome(db, sub, roundsUsed, draft.result, stalled);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await logRun(db, sub.id, "draft", null, "error", message);
@@ -172,14 +175,20 @@ async function draftPhase(
   followUps: FollowUpRow[],
   memo: string,
   sources: { title: string; url: string }[],
+  stalled: boolean,
 ): Promise<{ result: EditorialDraft; usage: UsageTotals }> {
   const client = anthropic();
   const sourceList = sources.length
     ? sources.map((s) => `- ${s.title}: ${s.url}`).join("\n")
     : "(no external sources surfaced during research)";
 
-  const canFollowUp = sub.consent && followUps.length < MAX_FOLLOW_UP_ROUNDS;
-  const userPrompt = `You are in the DRAFTING phase. Using the submission, any submitter answers, and the research memo below, produce your structured editorial output exactly per your instructions (inline markers, attributions, citations).\n\nFollow-up budget: ${canFollowUp ? `available — round ${followUps.length + 1} of ${MAX_FOLLOW_UP_ROUNDS}. Set needs_follow_up=true with 3-5 questions only if they would materially improve accuracy.` : "exhausted or no consent — set needs_follow_up=false and write the best draft you can, flagging any gaps inline."}\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}\n\n--- RESEARCH MEMO ---\n${memo}\n\n--- SOURCES SURFACED ---\n${sourceList}`;
+  const canFollowUp = sub.consent && followUps.length < MAX_FOLLOW_UP_ROUNDS && !stalled;
+  const budgetNote = stalled
+    ? "The submitter did NOT respond to follow-up questions within 5 days. Set needs_follow_up=false, set status='stalled', and write the best draft you can from available information, flagging the unanswered gaps inline."
+    : canFollowUp
+      ? `available — round ${followUps.length + 1} of ${MAX_FOLLOW_UP_ROUNDS}. Set needs_follow_up=true with 3-5 questions only if they would materially improve accuracy.`
+      : "exhausted or no consent — set needs_follow_up=false and write the best draft you can, flagging any gaps inline.";
+  const userPrompt = `You are in the DRAFTING phase. Using the submission, any submitter answers, and the research memo below, produce your structured editorial output exactly per your instructions (inline markers, attributions, citations).\n\nFollow-up budget: ${budgetNote}\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}\n\n--- RESEARCH MEMO ---\n${memo}\n\n--- SOURCES SURFACED ---\n${sourceList}`;
 
   const response = await client.messages.create({
     model: EDITORIAL_MODEL,
@@ -205,26 +214,47 @@ async function applyOutcome(
   sub: SubmissionRow,
   roundsUsed: number,
   draft: EditorialDraft,
+  stalled: boolean,
 ): Promise<RunResult> {
   const wantsFollowUp =
+    !stalled &&
     draft.needs_follow_up &&
     draft.follow_up_questions.length > 0 &&
     sub.consent &&
     roundsUsed < MAX_FOLLOW_UP_ROUNDS;
 
   if (wantsFollowUp) {
-    await db.from("follow_ups").insert({
-      submission_id: sub.id,
-      round: roundsUsed + 1,
-      questions: draft.follow_up_questions,
-      status: "sent",
-    });
+    const { data: fu } = await db
+      .from("follow_ups")
+      .insert({
+        submission_id: sub.id,
+        round: roundsUsed + 1,
+        questions: draft.follow_up_questions,
+        status: "sent",
+      })
+      .select("id")
+      .single();
     await db.from("submissions").update({ status: "questions_sent" }).eq("id", sub.id);
-    // NOTE: actual Gmail send is wired in Phase 4; questions are recorded now.
+
+    // Send the email if Gmail is configured; otherwise the questions are recorded
+    // for the editor to send manually (or a later poll-email run picks them up).
+    let sent = false;
+    try {
+      const { sendFollowUp } = await import("./gmail");
+      sent = await sendFollowUp({
+        followUpId: (fu as { id: string }).id,
+        refId: sub.ref_id,
+        to: sub.submitter_email,
+        questions: draft.follow_up_questions,
+      });
+    } catch {
+      /* email send is best-effort; questions remain recorded */
+    }
+
     return {
       ref_id: sub.ref_id,
       outcome: "questions_recorded",
-      detail: `${draft.follow_up_questions.length} question(s) for round ${roundsUsed + 1}`,
+      detail: `${draft.follow_up_questions.length} question(s) for round ${roundsUsed + 1}${sent ? " · emailed" : " · not emailed (Gmail unconfigured)"}`,
     };
   }
 
