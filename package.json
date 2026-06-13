@@ -10,7 +10,7 @@
     "agent:run": "tsx scripts/run-agent.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.69.0",
+    "@anthropic-ai/sdk": "^0.104.1",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.47.10",
     "googleapis": "^144.0.0",
