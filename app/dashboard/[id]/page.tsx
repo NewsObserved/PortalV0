@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { approveSubmission, rejectSubmission, saveDraft } from "../actions";
+import PublishPanel from "./PublishPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,14 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
     .select("*")
     .eq("submission_id", id)
     .order("round", { ascending: true });
+
+  const { data: pubs } = await db
+    .from("publications")
+    .select("wordpress_url")
+    .eq("submission_id", id)
+    .order("published_at", { ascending: false })
+    .limit(1);
+  const publishedUrl = pubs?.[0]?.wordpress_url ?? null;
 
   const privacyNote =
     sub.privacy === "anon"
@@ -219,9 +228,7 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
               </button>
             </form>
           </div>
-          <p style={{ fontSize: ".78rem", color: "#6b675c", marginTop: 12 }}>
-            Publishing to ognsc.com is wired in Phase 5. Approve to mark ready.
-          </p>
+          <PublishPanel submissionId={sub.id} existingUrl={publishedUrl} />
         </>
       ) : (
         <div style={card}>
