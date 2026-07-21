@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "back-office",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "public-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "site", "-l", "4000"],
+      "port": 4000
+    }
+  ]
+}

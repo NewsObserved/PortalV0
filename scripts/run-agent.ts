@@ -57,6 +57,10 @@ async function main() {
   loadEnv();
   const arg = process.argv[2];
 
+  const { sendPendingConfirmations } = await import("../lib/gmail");
+  const confirmations = await sendPendingConfirmations();
+  if (confirmations > 0) console.log(`Sent ${confirmations} confirmation email(s)`);
+
   if (arg === "--seed") {
     const id = await seed();
     console.log(JSON.stringify(await processSubmission(id), null, 2));
