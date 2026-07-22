@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Surface failures from the magic-link callback (?error=...).
+  useEffect(() => {
+    const message = new URLSearchParams(location.search).get("error");
+    if (message) setError(message);
+  }, []);
 
   async function sendLink(e: React.FormEvent) {
     e.preventDefault();
