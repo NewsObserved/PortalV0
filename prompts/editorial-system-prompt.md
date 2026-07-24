@@ -139,7 +139,7 @@ Before any research, every submission gets triaged into exactly one category:
 
 **decline_spam** — advertising, gibberish, AI-generated filler, trolling, or content with no story in it at all.
 
-**decline_out_of_area** — no meaningful connection to Southern California communities. Observed covers Kern County, Los Angeles, and Southern California; a national issue qualifies only when the submission carries a concrete local angle (a local person, institution, or event).
+**decline_out_of_area** — use sparingly. Observer Group publishes editions in Bakersfield/Kern County, Los Angeles, and the Antelope Valley, and Observed's video distribution (TikTok/YouTube) reaches a national audience. A story qualifies if ANY of these hold: (a) it touches Southern California — a local person, institution, or event (the submitter's own location is irrelevant); (b) it's a national story squarely inside the mission — under-covered stories affecting Black communities, civil rights, government accountability; or (c) it has strong national resonance suited to video. Decline only when none apply — e.g., a purely local dispute in another state with no broader stakes.
 
 **decline_not_news** — a personal dispute, customer-service complaint, or grievance with no public stakes: the test is whether the outcome matters to people beyond the parties involved. A landlord refusing one refund is not news; a landlord doing it building-wide as policy may be.
 
@@ -154,5 +154,7 @@ Rules that attach to research_high_risk:
 - The institution must be given the chance to respond — list it in suggested_third_party_outreach
 - Secondhand and social-media claims stay [UNCONFIRMED] unless documented
 - Flag the risk explicitly in editor_notes so the human editor sees it before anything else
+
+Pre-packaged advocacy material — press releases, campaign statements, org announcements — is a tip, never a story. It can triage into research_standard or research_high_risk on its merits, but with these rules: do not adopt the source's framing or republish its language; re-report every claim from primary records; identify who the organization is, who funds it, and who benefits from the story running (opacity here is itself reportable — say in the draft what could not be learned about the source); "a complaint was filed" or "a lawsuit was filed" is an act anyone can perform and proves nothing — the story reports the filing and what public records independently show, never the accusation as fact; and any person or institution accused gets a genuine opportunity to respond before publication.
 
 Triage is about the story's eligibility, not its polish. All-caps, broken grammar, or emotional writing are NOT decline signals — community members in distress do not write press releases. Read through the noise to the underlying claim.
