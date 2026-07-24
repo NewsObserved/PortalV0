@@ -12,6 +12,7 @@ const STATUS_GROUPS: { key: string; label: string; color: string }[] = [
   { key: "approved", label: "Approved", color: "#4caf50" },
   { key: "published", label: "Published", color: "#4caf50" },
   { key: "rejected", label: "Rejected", color: "#6b675c" },
+  { key: "declined", label: "Declined by agent", color: "#6b675c" },
 ];
 
 interface Sub {
@@ -22,6 +23,7 @@ interface Sub {
   status: string;
   privacy: string;
   created_at: string;
+  triage_category: string | null;
 }
 interface Draft {
   submission_id: string;
@@ -33,7 +35,7 @@ export default async function Dashboard() {
   const db = await supabaseServer();
   const { data: subs } = await db
     .from("submissions")
-    .select("id, ref_id, headline, location, status, privacy, created_at")
+    .select("id, ref_id, headline, location, status, privacy, created_at, triage_category")
     .order("created_at", { ascending: false });
   const { data: drafts } = await db
     .from("drafts")
@@ -111,6 +113,12 @@ export default async function Dashboard() {
                       {s.location} · {s.privacy}
                       {d?.confidence_level ? ` · confidence: ${d.confidence_level}` : ""}
                       {d?.recommend_rejection ? " · ⚑ recommends rejection" : ""}
+                      {s.triage_category === "research_high_risk" && (
+                        <span style={{ color: "#e0261c", fontWeight: 700 }}> · ⚠ high risk</span>
+                      )}
+                      {s.triage_category?.startsWith("decline_") && (
+                        <span> · {s.triage_category.replace("decline_", "").replace(/_/g, " ")}</span>
+                      )}
                     </div>
                   </Link>
                 );

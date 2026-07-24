@@ -91,6 +91,33 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
         <span style={{ fontSize: ".78rem", color: "#9a958a" }}>· {sub.status}</span>
       </div>
 
+      {sub.triage_category && (
+        <div
+          style={{
+            ...card,
+            ...(sub.triage_category === "research_high_risk"
+              ? { borderColor: "#9e1b15", background: "#2a1310" }
+              : {}),
+          }}
+        >
+          <div
+            style={{
+              ...label,
+              color: sub.triage_category === "research_high_risk" ? "#e0261c" : "#8ea4e8",
+            }}
+          >
+            {sub.triage_category === "research_high_risk" ? "⚠ " : ""}Triage:{" "}
+            {sub.triage_category.replace(/_/g, " ")}
+          </div>
+          {sub.triage_rationale && <p style={{ margin: 0 }}>{sub.triage_rationale}</p>}
+          {(sub.triage_risk_flags?.length ?? 0) > 0 && (
+            <p style={{ fontSize: ".78rem", color: "#9a958a", margin: "8px 0 0" }}>
+              flags: {sub.triage_risk_flags.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+
       {draft?.recommend_rejection && (
         <div style={{ ...card, borderColor: "#9e1b15", background: "#2a1310" }}>
           <div style={{ ...label, color: "#e0261c" }}>⚑ Agent recommends rejection</div>

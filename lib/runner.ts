@@ -23,6 +23,7 @@ interface SubmissionRow {
   privacy: string;
   consent: boolean;
   status: string;
+  triage_category: string | null;
 }
 
 interface FollowUpRow {
@@ -34,9 +35,58 @@ interface FollowUpRow {
 
 export interface RunResult {
   ref_id: string;
-  outcome: "drafted" | "questions_recorded" | "stalled" | "skipped" | "error";
+  outcome: "drafted" | "questions_recorded" | "stalled" | "skipped" | "error" | "declined";
   detail: string;
 }
+
+export type TriageCategory =
+  | "decline_spam"
+  | "decline_out_of_area"
+  | "decline_not_news"
+  | "decline_unverifiable_accusation"
+  | "research_standard"
+  | "research_high_risk";
+
+interface TriageResult {
+  category: TriageCategory;
+  rationale: string;
+  institutional_angle: string | null;
+  risk_flags: string[];
+}
+
+const TRIAGE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["category", "rationale", "institutional_angle", "risk_flags"],
+  properties: {
+    category: {
+      type: "string",
+      enum: [
+        "decline_spam",
+        "decline_out_of_area",
+        "decline_not_news",
+        "decline_unverifiable_accusation",
+        "research_standard",
+        "research_high_risk",
+      ],
+    },
+    rationale: {
+      type: "string",
+      description: "1-3 sentences: why this category, per the triage criteria",
+    },
+    institutional_angle: {
+      type: ["string", "null"],
+      description:
+        "The institution whose conduct could be examined (agency, business, public process), or null",
+    },
+    risk_flags: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "Short flags, e.g. names_private_individual, criminal_allegation, secondhand_source, social_media_claim",
+    },
+  },
+} as const;
 
 /** Process a single submission end-to-end: research → draft → branch. */
 export async function processSubmission(submissionId: string): Promise<RunResult> {
@@ -68,10 +118,34 @@ export async function processSubmission(submissionId: string): Promise<RunResult
   const stalled = followUps.some((f) => f.status === "stalled");
 
   try {
-    const research = await researchPhase(sub, followUps);
+    // Triage once, on first contact. Declines end the pipeline here.
+    let highRisk = sub.triage_category === "research_high_risk";
+    if (!sub.triage_category) {
+      const triage = await triagePhase(sub);
+      await logRun(db, sub.id, "triage", triage.usage, "ok");
+      await db
+        .from("submissions")
+        .update({
+          triage_category: triage.result.category,
+          triage_rationale: triage.result.rationale,
+          triage_risk_flags: triage.result.risk_flags,
+        })
+        .eq("id", sub.id);
+      if (triage.result.category.startsWith("decline_")) {
+        await db.from("submissions").update({ status: "declined" }).eq("id", sub.id);
+        return {
+          ref_id: sub.ref_id,
+          outcome: "declined",
+          detail: `${triage.result.category}: ${triage.result.rationale}`,
+        };
+      }
+      highRisk = triage.result.category === "research_high_risk";
+    }
+
+    const research = await researchPhase(sub, followUps, highRisk);
     await logRun(db, sub.id, "research", research.usage, "ok");
 
-    const draft = await draftPhase(sub, followUps, research.memo, research.sources, stalled);
+    const draft = await draftPhase(sub, followUps, research.memo, research.sources, stalled, highRisk);
     await logRun(db, sub.id, "draft", draft.usage, "ok");
 
     return await applyOutcome(db, sub, roundsUsed, draft.result, stalled);
@@ -130,12 +204,39 @@ function submissionBrief(sub: SubmissionRow, followUps: FollowUpRow[]): string {
   return lines.join("\n");
 }
 
+/** Cheap classification pass — no web search, small budget. */
+async function triagePhase(
+  sub: SubmissionRow,
+): Promise<{ result: TriageResult; usage: UsageTotals }> {
+  const client = anthropic();
+  const response = await client.messages.create({
+    model: EDITORIAL_MODEL,
+    max_tokens: 1000,
+    system: editorialSystemPrompt(),
+    output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
+    messages: [
+      {
+        role: "user",
+        content: `You are in the TRIAGE phase. Categorize this submission per the triage criteria in your instructions. Do not research it yet — judge eligibility only.\n\n--- SUBMISSION ---\n${submissionBrief(sub, [])}`,
+      },
+    ],
+  } as Anthropic.MessageCreateParamsNonStreaming);
+  const usage: UsageTotals = { input: 0, output: 0 };
+  addUsage(usage, response.usage);
+  const result = JSON.parse(collectText(response.content).trim()) as TriageResult;
+  return { result, usage };
+}
+
+const HIGH_RISK_NOTE =
+  "\n\nTRIAGE FLAG — this submission is research_high_risk. Apply the high-risk rules: never name private individuals absent court records or official filings; examine the institutional angle; list the institution in suggested_third_party_outreach; keep secondhand/social-media claims [UNCONFIRMED]; lead your editor_notes with the risk.";
+
 async function researchPhase(
   sub: SubmissionRow,
   followUps: FollowUpRow[],
+  highRisk = false,
 ): Promise<{ memo: string; sources: { title: string; url: string }[]; usage: UsageTotals }> {
   const client = anthropic();
-  const userPrompt = `You are in the RESEARCH phase for the following community submission. Use web_search to verify names, events, dates, numbers, quotes, and whether this is already widely covered. Produce a concise research memo: what you independently verified (with sources), what you could not verify, any contradictions, and whether mainstream outlets are already covering it. Do NOT write the article yet.\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}`;
+  const userPrompt = `You are in the RESEARCH phase for the following community submission. Use web_search to verify names, events, dates, numbers, quotes, and whether this is already widely covered. Produce a concise research memo: what you independently verified (with sources), what you could not verify, any contradictions, and whether mainstream outlets are already covering it. Do NOT write the article yet.${highRisk ? HIGH_RISK_NOTE : ""}\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}`;
 
   const messages: Anthropic.MessageParam[] = [{ role: "user", content: userPrompt }];
   const usage: UsageTotals = { input: 0, output: 0 };
@@ -176,6 +277,7 @@ async function draftPhase(
   memo: string,
   sources: { title: string; url: string }[],
   stalled: boolean,
+  highRisk = false,
 ): Promise<{ result: EditorialDraft; usage: UsageTotals }> {
   const client = anthropic();
   const sourceList = sources.length
@@ -188,7 +290,7 @@ async function draftPhase(
     : canFollowUp
       ? `available — round ${followUps.length + 1} of ${MAX_FOLLOW_UP_ROUNDS}. Set needs_follow_up=true with 3-5 questions only if they would materially improve accuracy.`
       : "exhausted or no consent — set needs_follow_up=false and write the best draft you can, flagging any gaps inline.";
-  const userPrompt = `You are in the DRAFTING phase. Using the submission, any submitter answers, and the research memo below, produce your structured editorial output exactly per your instructions (inline markers, attributions, citations).\n\nFollow-up budget: ${budgetNote}\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}\n\n--- RESEARCH MEMO ---\n${memo}\n\n--- SOURCES SURFACED ---\n${sourceList}`;
+  const userPrompt = `You are in the DRAFTING phase. Using the submission, any submitter answers, and the research memo below, produce your structured editorial output exactly per your instructions (inline markers, attributions, citations).${highRisk ? HIGH_RISK_NOTE : ""}\n\nFollow-up budget: ${budgetNote}\n\n--- SUBMISSION ---\n${submissionBrief(sub, followUps)}\n\n--- RESEARCH MEMO ---\n${memo}\n\n--- SOURCES SURFACED ---\n${sourceList}`;
 
   const response = await client.messages.create({
     model: EDITORIAL_MODEL,
@@ -331,7 +433,7 @@ function collectSources(messages: Anthropic.MessageParam[]): { title: string; ur
 async function logRun(
   db: ReturnType<typeof supabaseAdmin>,
   submissionId: string,
-  phase: "research" | "draft",
+  phase: "triage" | "research" | "draft",
   usage: UsageTotals | null,
   status: "ok" | "error",
   error?: string,
