@@ -30,11 +30,15 @@ const SCRIPT_SCHEMA = {
       type: "string",
       description: "Punchy version of the headline for the intro card, max 9 words",
     },
-    kicker: { type: "string", description: "2-3 word label, e.g. 'Community Report'" },
+    kicker: {
+      type: "string",
+      description:
+        "The story's location as CITY, STATE (e.g. 'Jackson, Mississippi') — this is the orientation chip on the intro card. Use a short label like 'Community Report' only if the story has no single location.",
+    },
     narration: {
       type: "string",
       description:
-        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. Social-first pacing: the first sentence is a hook that makes someone stop scrolling, then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. Vary sentence length so the read has natural rhythm. No hashtags, no emoji, no stage directions — only the words to be spoken. The script MUST end with exactly this sentence, verbatim, as its final line: \"To submit your news, visit us at news observed dot com.\"",
+        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. THE FIRST SENTENCE MUST NAME THE CITY AND STATE where the story happens, so a scroller is oriented immediately (e.g. 'Jackson, Mississippi.' or 'In Memphis, Tennessee —'). Then the hook: a line that makes someone stop scrolling. Then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. Vary sentence length so the read has natural rhythm. No hashtags, no emoji, no stage directions — only the words to be spoken. The script MUST end with exactly this sentence, verbatim, as its final line: \"To submit your news, visit us at news observed dot com.\"",
     },
     tiktok_caption: {
       type: "string",
