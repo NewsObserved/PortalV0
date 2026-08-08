@@ -279,22 +279,22 @@ export function StoryShort({
         >
           News <span style={{ color: RED }}>Observed</span>
         </div>
+        <div style={{ fontSize: 38, color: PAPER, marginBottom: 26, textAlign: "center" }}>
+          To submit your news, visit us at
+        </div>
         <div
           style={{
             background: RED,
             color: PAPER,
             fontWeight: 800,
-            fontSize: 40,
-            letterSpacing: "0.1em",
+            fontSize: 46,
+            letterSpacing: "0.08em",
             textTransform: "uppercase",
             padding: "26px 48px",
             boxShadow: `10px 10px 0 ${PAPER}`,
           }}
         >
-          Full story → newsobserved.com
-        </div>
-        <div style={{ marginTop: 40, fontSize: 30, color: "#9a958a" }}>
-          Got a story they buried? Send it.
+          newsobserved.com
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

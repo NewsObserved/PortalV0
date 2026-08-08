@@ -33,7 +33,7 @@ const SCRIPT_SCHEMA = {
     narration: {
       type: "string",
       description:
-        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. Social-first pacing: the first sentence is a hook that makes someone stop scrolling, then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. No hashtags, no emoji, no stage directions — only the words to be spoken. End with: the full story is at news observed dot com.",
+        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. Social-first pacing: the first sentence is a hook that makes someone stop scrolling, then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. Vary sentence length so the read has natural rhythm. No hashtags, no emoji, no stage directions — only the words to be spoken. The script MUST end with exactly this sentence, verbatim, as its final line: \"To submit your news, visit us at news observed dot com.\"",
     },
     tiktok_caption: {
       type: "string",
@@ -127,8 +127,15 @@ export async function synthesizeVoice(narration: string, refId: string): Promise
       body: JSON.stringify({
         text: narration,
         model_id: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
-        // Slightly quick delivery — social pacing, still intelligible.
-        voice_settings: { stability: 0.4, similarity_boost: 0.75, speed: 1.08 },
+        // Low stability + style = more inflection and less monotone; slightly
+        // quick delivery for social pacing.
+        voice_settings: {
+          stability: 0.3,
+          similarity_boost: 0.8,
+          style: 0.45,
+          use_speaker_boost: true,
+          speed: 1.06,
+        },
       }),
     },
   );
