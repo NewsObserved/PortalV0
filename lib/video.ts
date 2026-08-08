@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, EDITORIAL_MODEL } from "./anthropic";
 import type { TimedWord } from "../video/StoryShort";
 
@@ -69,6 +70,144 @@ export async function generateScript(story: {
     .map((b) => (b as { text: string }).text)
     .join("");
   return JSON.parse(text) as VideoScript;
+}
+
+/** One visual the agent decided the story needs, and why. */
+export interface PlannedShot {
+  kind: "map" | "source_page" | "commons_image";
+  /** Place to map, or search terms for an openly-licensed image. */
+  query: string;
+  /** For source_page: which cited URL to capture. */
+  source_url: string | null;
+  /** The editorial reason — shown to the editor, not the viewer. */
+  purpose: string;
+}
+
+const SHOT_LIST_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["shots"],
+  properties: {
+    shots: {
+      type: "array",
+      description: "Between 5 and 7 shots, in the order the viewer should see them.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["kind", "query", "source_url", "purpose"],
+        properties: {
+          kind: { type: "string", enum: ["map", "source_page", "commons_image"] },
+          query: {
+            type: "string",
+            description:
+              "For map: a geocodable place, e.g. 'Martin Luther King Park, Bakersfield, CA' — real place names only, no abbreviations. For commons_image: plain search terms for Wikimedia Commons, e.g. 'Bakersfield California city hall'. For source_page: repeat the page's topic.",
+          },
+          source_url: {
+            type: ["string", "null"],
+            description: "Required for source_page — must be one of the story's citation URLs.",
+          },
+          purpose: {
+            type: "string",
+            description: "One line: what this visual shows the viewer and why it belongs here.",
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+/**
+ * Decide what the video should SHOW. The agent reads the finished story and
+ * plans a sequence of visuals — establishing the place, documenting the claim,
+ * illustrating the context — rather than screenshotting whatever was cited.
+ */
+export async function planVisuals(
+  story: { headline: string; dek: string | null; body: string },
+  citations: { source_url: string; source_name: string }[],
+): Promise<PlannedShot[]> {
+  const client = anthropic();
+  const sourceList = citations.length
+    ? citations.map((c) => `- ${c.source_name}: ${c.source_url}`).join("\n")
+    : "(none)";
+
+  const response = await client.messages.create({
+    model: EDITORIAL_MODEL,
+    max_tokens: 2000,
+    system:
+      "You are a photo editor for a short-form news video. You plan what the viewer SEES while the narration plays. Think like someone building a visual sequence: establish where this is happening, show the thing being reported, document the evidence, then give context. Vary the shot kinds — a wall of webpage screenshots is lifeless. You may ONLY use these sources, for rights reasons: 'map' (an OpenStreetMap view of a real location), 'source_page' (a screenshot of a page we cited, used as documentary evidence), and 'commons_image' (an openly-licensed photo from Wikimedia Commons). Never plan a shot you cannot get from those three. Prefer a map early to establish place. Use source_page when the page itself IS the evidence — a schedule, a filing, an announcement. Use commons_image for real-world context: the city, the neighborhood, the type of facility, a landmark. Order the shots to follow the story's arc.",
+    output_config: { format: { type: "json_schema", schema: SHOT_LIST_SCHEMA } },
+    messages: [
+      {
+        role: "user",
+        content: `Plan the visual sequence for this story.\n\nHEADLINE: ${story.headline}\n${story.dek ? `DEK: ${story.dek}\n` : ""}\nBODY:\n${story.body}\n\nCITED PAGES AVAILABLE FOR SCREENSHOTS:\n${sourceList}`,
+      },
+    ],
+  } as Anthropic.MessageCreateParamsNonStreaming);
+
+  const text = response.content
+    .filter((b) => b.type === "text")
+    .map((b) => (b as { text: string }).text)
+    .join("");
+  return (JSON.parse(text) as { shots: PlannedShot[] }).shots;
+}
+
+/**
+ * Look at a candidate image and judge whether it actually shows what the shot
+ * needs. Commons text search is keyword-matched and returns wild misses (a
+ * search for spray parks returns an 1899 seed catalogue for "Park's Floral
+ * Magazine"), so the only reliable filter is looking at the picture.
+ */
+export async function imageFitsShot(
+  imageBase64: string,
+  mediaType: "image/jpeg" | "image/png",
+  purpose: string,
+): Promise<boolean> {
+  try {
+    const client = anthropic();
+    const response = await client.messages.create({
+      model: EDITORIAL_MODEL,
+      max_tokens: 300,
+      system:
+        "You are a photo editor checking whether an image is usable in a news video. Answer with a JSON object only. Be strict: reject scans of documents, book pages, advertisements, maps of the wrong place, logos, diagrams, and anything a viewer would find confusing or misleading in context. Accept only a real photograph that plainly depicts the subject described.",
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["fits", "reason"],
+            properties: {
+              fits: { type: "boolean" },
+              reason: { type: "string", description: "Under 15 words." },
+            },
+          },
+        },
+      },
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: mediaType, data: imageBase64 },
+            },
+            {
+              type: "text",
+              text: `This image would be shown while the narration covers: "${purpose}"\n\nIs it a real photograph that plainly depicts that subject and would read clearly to a viewer?`,
+            },
+          ],
+        },
+      ],
+    } as Anthropic.MessageCreateParamsNonStreaming);
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { text: string }).text)
+      .join("");
+    return (JSON.parse(text) as { fits: boolean }).fits === true;
+  } catch {
+    return false; // can't verify -> don't use it
+  }
 }
 
 interface ElevenLabsAlignment {

@@ -59,9 +59,14 @@ async function main() {
   const voice = await synthesizeVoice(script.narration, refId);
   console.log(`Voice: ${(voice.durationMs / 1000).toFixed(1)}s`);
 
-  console.log("Collecting visuals (submitter photos + source screenshots)…");
+  console.log("Planning visuals…");
+  const { planVisuals } = await import("../lib/video");
+  const plan = await planVisuals(draft, draft.citations ?? []);
+  for (const s of plan) console.log(`  · ${s.kind}: ${s.purpose}`);
+
+  console.log("Fetching visuals…");
   const { collectMedia } = await import("../lib/media");
-  const media = await collectMedia(sub.id, refId, draft.citations ?? []);
+  const media = await collectMedia(sub.id, refId, draft.citations ?? [], plan);
   console.log(
     `Visuals: ${media.length} (${media.filter((m) => m.kind === "photo").length} submitted, ${media.filter((m) => m.kind === "screenshot").length} sources)`,
   );

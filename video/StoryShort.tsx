@@ -20,7 +20,7 @@ export interface TimedWord {
 export interface MediaShot {
   file: string;
   source: string;
-  kind: "screenshot" | "photo";
+  kind: "screenshot" | "photo" | "map" | "image";
 }
 
 export type StoryShortProps = {
@@ -137,13 +137,14 @@ export function StoryShort({
               background: shot.kind === "photo" ? RED : BLUE,
               color: PAPER,
               fontWeight: 800,
-              fontSize: 26,
-              letterSpacing: ".12em",
+              fontSize: 24,
+              letterSpacing: ".1em",
               textTransform: "uppercase",
               padding: "10px 20px",
+              maxWidth: 900,
             }}
           >
-            {shot.kind === "photo" ? "Submitted photo" : `Source: ${shot.source}`}
+            {shot.kind === "photo" ? "Submitted photo" : shot.source}
           </div>
         </AbsoluteFill>
       )}
