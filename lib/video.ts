@@ -33,7 +33,7 @@ const SCRIPT_SCHEMA = {
     narration: {
       type: "string",
       description:
-        "45-60 second spoken-word script. Hook in the first sentence. Plain, urgent, conversational. No hashtags, no emoji, no stage directions — only the words to be spoken. End by saying the full story is at news observed dot com.",
+        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. Social-first pacing: the first sentence is a hook that makes someone stop scrolling, then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. No hashtags, no emoji, no stage directions — only the words to be spoken. End with: the full story is at news observed dot com.",
     },
     tiktok_caption: {
       type: "string",
@@ -127,6 +127,8 @@ export async function synthesizeVoice(narration: string, refId: string): Promise
       body: JSON.stringify({
         text: narration,
         model_id: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
+        // Slightly quick delivery — social pacing, still intelligible.
+        voice_settings: { stability: 0.4, similarity_boost: 0.75, speed: 1.08 },
       }),
     },
   );

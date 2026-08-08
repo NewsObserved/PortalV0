@@ -164,6 +164,43 @@ export async function sendFollowUp(fu: FollowUpEmail): Promise<boolean> {
   return true;
 }
 
+export interface GmailImage {
+  data: Buffer;
+  ext: string;
+}
+
+/** Collect image attachments from every message in a thread. */
+export async function gmailAttachments(threadId: string, limit = 6): Promise<GmailImage[]> {
+  if (!isGmailConfigured()) return [];
+  const gmail = gmailClient();
+  const thread = await gmail.users.threads.get({ userId: "me", id: threadId });
+
+  const out: GmailImage[] = [];
+  const walk = (part: gmail_v1.Schema$MessagePart | undefined): gmail_v1.Schema$MessagePart[] =>
+    !part ? [] : [part, ...(part.parts ?? []).flatMap(walk)];
+
+  for (const message of thread.data.messages ?? []) {
+    for (const part of walk(message.payload)) {
+      if (out.length >= limit) return out;
+      const mime = part.mimeType ?? "";
+      const attachmentId = part.body?.attachmentId;
+      if (!mime.startsWith("image/") || !attachmentId) continue;
+
+      const att = await gmail.users.messages.attachments.get({
+        userId: "me",
+        messageId: message.id!,
+        id: attachmentId,
+      });
+      if (!att.data.data) continue;
+      out.push({
+        data: Buffer.from(att.data.data, "base64url"),
+        ext: mime.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg",
+      });
+    }
+  }
+  return out;
+}
+
 function extractPlainText(payload: gmail_v1.Schema$MessagePart | undefined): string {
   if (!payload) return "";
   if (payload.mimeType === "text/plain" && payload.body?.data) {

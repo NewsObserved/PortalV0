@@ -45,7 +45,7 @@ async function main() {
 
   const { data: draft } = await db
     .from("drafts")
-    .select("headline, dek, body")
+    .select("headline, dek, body, citations")
     .eq("submission_id", sub.id)
     .order("version", { ascending: false })
     .limit(1)
@@ -59,10 +59,18 @@ async function main() {
   const voice = await synthesizeVoice(script.narration, refId);
   console.log(`Voice: ${(voice.durationMs / 1000).toFixed(1)}s`);
 
+  console.log("Collecting visuals (submitter photos + source screenshots)…");
+  const { collectMedia } = await import("../lib/media");
+  const media = await collectMedia(sub.id, refId, draft.citations ?? []);
+  console.log(
+    `Visuals: ${media.length} (${media.filter((m) => m.kind === "photo").length} submitted, ${media.filter((m) => m.kind === "screenshot").length} sources)`,
+  );
+
   const props = {
     headline: script.headline_short,
     kicker: script.kicker,
     words: voice.words,
+    media,
     audioFile: voice.audioFile,
     durationMs: voice.durationMs,
   };

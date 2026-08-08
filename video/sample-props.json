@@ -1,30 +1,119 @@
 {
-  "headline": "City chained the only splash pad in Lakeview — no notice, no answers",
+  "headline": "City chained the only splash pad in Lakeview \u2014 no notice, no answers",
   "kicker": "Community Report",
   "audioFile": null,
   "durationMs": 9000,
   "words": [
-    { "text": "The", "startMs": 0, "endMs": 220 },
-    { "text": "only", "startMs": 220, "endMs": 520 },
-    { "text": "free", "startMs": 520, "endMs": 800 },
-    { "text": "splash", "startMs": 800, "endMs": 1150 },
-    { "text": "pad", "startMs": 1150, "endMs": 1450 },
-    { "text": "in", "startMs": 1450, "endMs": 1600 },
-    { "text": "Lakeview", "startMs": 1600, "endMs": 2150 },
-    { "text": "has", "startMs": 2150, "endMs": 2350 },
-    { "text": "been", "startMs": 2350, "endMs": 2550 },
-    { "text": "chained", "startMs": 2550, "endMs": 3000 },
-    { "text": "shut", "startMs": 3000, "endMs": 3400 },
-    { "text": "since", "startMs": 3400, "endMs": 3700 },
-    { "text": "early", "startMs": 3700, "endMs": 4050 },
-    { "text": "June.", "startMs": 4050, "endMs": 4600 },
-    { "text": "Parents", "startMs": 4800, "endMs": 5250 },
-    { "text": "asked", "startMs": 5250, "endMs": 5600 },
-    { "text": "the", "startMs": 5600, "endMs": 5750 },
-    { "text": "city", "startMs": 5750, "endMs": 6100 },
-    { "text": "why.", "startMs": 6100, "endMs": 6600 },
-    { "text": "Nobody", "startMs": 6800, "endMs": 7250 },
-    { "text": "called", "startMs": 7250, "endMs": 7600 },
-    { "text": "back.", "startMs": 7600, "endMs": 8100 }
-  ]
+    {
+      "text": "The",
+      "startMs": 0,
+      "endMs": 220
+    },
+    {
+      "text": "only",
+      "startMs": 220,
+      "endMs": 520
+    },
+    {
+      "text": "free",
+      "startMs": 520,
+      "endMs": 800
+    },
+    {
+      "text": "splash",
+      "startMs": 800,
+      "endMs": 1150
+    },
+    {
+      "text": "pad",
+      "startMs": 1150,
+      "endMs": 1450
+    },
+    {
+      "text": "in",
+      "startMs": 1450,
+      "endMs": 1600
+    },
+    {
+      "text": "Lakeview",
+      "startMs": 1600,
+      "endMs": 2150
+    },
+    {
+      "text": "has",
+      "startMs": 2150,
+      "endMs": 2350
+    },
+    {
+      "text": "been",
+      "startMs": 2350,
+      "endMs": 2550
+    },
+    {
+      "text": "chained",
+      "startMs": 2550,
+      "endMs": 3000
+    },
+    {
+      "text": "shut",
+      "startMs": 3000,
+      "endMs": 3400
+    },
+    {
+      "text": "since",
+      "startMs": 3400,
+      "endMs": 3700
+    },
+    {
+      "text": "early",
+      "startMs": 3700,
+      "endMs": 4050
+    },
+    {
+      "text": "June.",
+      "startMs": 4050,
+      "endMs": 4600
+    },
+    {
+      "text": "Parents",
+      "startMs": 4800,
+      "endMs": 5250
+    },
+    {
+      "text": "asked",
+      "startMs": 5250,
+      "endMs": 5600
+    },
+    {
+      "text": "the",
+      "startMs": 5600,
+      "endMs": 5750
+    },
+    {
+      "text": "city",
+      "startMs": 5750,
+      "endMs": 6100
+    },
+    {
+      "text": "why.",
+      "startMs": 6100,
+      "endMs": 6600
+    },
+    {
+      "text": "Nobody",
+      "startMs": 6800,
+      "endMs": 7250
+    },
+    {
+      "text": "called",
+      "startMs": 7250,
+      "endMs": 7600
+    },
+    {
+      "text": "back.",
+      "startMs": 7600,
+      "endMs": 8100
+    }
+  ],
+  "media": []
 }

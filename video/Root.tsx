@@ -4,9 +4,9 @@ import sample from "./sample-props.json";
 
 const FPS = 30;
 
-// voiceover length + 0.5s lead-in + 2.5s outro
+// voiceover + 0.3s lead-in + 2.2s outro
 const calculateMetadata: CalculateMetadataFunction<StoryShortProps> = ({ props }) => ({
-  durationInFrames: Math.ceil(((props.durationMs + 3000) / 1000) * FPS),
+  durationInFrames: Math.ceil(((props.durationMs + 2500) / 1000) * FPS),
   props,
 });
 
