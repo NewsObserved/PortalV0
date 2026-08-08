@@ -96,3 +96,17 @@ export async function publishSubmission(
     return { error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+/** Record where a video was posted (or that we skipped it). */
+export async function markVideoPosted(formData: FormData) {
+  const videoId = String(formData.get("videoId"));
+  const status = String(formData.get("status"));
+  const stamp = new Date().toISOString();
+  const patch: Record<string, string> = { status };
+  if (status === "posted_tiktok" || status === "posted_all") patch.posted_tiktok_at = stamp;
+  if (status === "posted_youtube" || status === "posted_all") patch.posted_youtube_at = stamp;
+
+  const db = await supabaseServer();
+  await db.from("videos").update(patch).eq("id", videoId);
+  revalidatePath("/dashboard/videos");
+}

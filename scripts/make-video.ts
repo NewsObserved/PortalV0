@@ -86,6 +86,20 @@ async function main() {
     { stdio: "inherit" },
   );
 
+  // Upload so the Editorial Desk can play it (renders happen on this machine).
+  console.log("Uploading to the Editorial Desk…");
+  try {
+    const { readFileSync } = await import("node:fs");
+    const bytes = readFileSync(join(process.cwd(), outPath));
+    const { error: upErr } = await db.storage
+      .from("videos")
+      .upload(`${refId}.mp4`, bytes, { contentType: "video/mp4", upsert: true });
+    if (upErr) throw upErr;
+    console.log("Uploaded.");
+  } catch (e) {
+    console.warn(`! Upload failed (video still at ${outPath}): ${e instanceof Error ? e.message : e}`);
+  }
+
   // Queue row is bookkeeping — never discard a rendered video over it.
   const { error: queueError } = await db.from("videos").insert({
     submission_id: sub.id,

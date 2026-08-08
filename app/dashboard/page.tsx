@@ -64,9 +64,14 @@ export default async function Dashboard() {
         <h1 style={{ fontFamily: "Georgia, serif", fontSize: "1.9rem" }}>
           Editorial Desk
         </h1>
-        <span style={{ fontSize: ".8rem", color: "#9a958a" }}>
-          {subs?.length ?? 0} submissions
-        </span>
+        <div style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
+          <Link href="/dashboard/videos" style={{ color: "#8ea4e8", fontSize: ".85rem" }}>
+            Videos →
+          </Link>
+          <span style={{ fontSize: ".8rem", color: "#9a958a" }}>
+            {subs?.length ?? 0} submissions
+          </span>
+        </div>
       </div>
 
       {subsError && (
