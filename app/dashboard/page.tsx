@@ -33,7 +33,7 @@ interface Draft {
 
 export default async function Dashboard() {
   const db = await supabaseServer();
-  const { data: subs } = await db
+  const { data: subs, error: subsError } = await db
     .from("submissions")
     .select("id, ref_id, headline, location, status, privacy, created_at, triage_category")
     .order("created_at", { ascending: false });
@@ -68,6 +68,29 @@ export default async function Dashboard() {
           {subs?.length ?? 0} submissions
         </span>
       </div>
+
+      {subsError && (
+        <div
+          style={{
+            padding: "14px 16px",
+            background: "#2a1310",
+            border: "1px solid #9e1b15",
+            borderRadius: 12,
+            color: "#f5f1e6",
+            marginTop: 16,
+          }}
+        >
+          <b style={{ color: "#e0261c" }}>Couldn&apos;t load submissions:</b>{" "}
+          {subsError.message}
+          {subsError.message.includes("does not exist") && (
+            <div style={{ fontSize: ".85rem", color: "#9a958a", marginTop: 6 }}>
+              If a schema change was just applied, run{" "}
+              <code>NOTIFY pgrst, &apos;reload schema&apos;;</code> in the Supabase SQL
+              editor to refresh the API&apos;s schema cache.
+            </div>
+          )}
+        </div>
+      )}
 
       {STATUS_GROUPS.map((g) => {
         const items = bucket.get(g.key) ?? [];
