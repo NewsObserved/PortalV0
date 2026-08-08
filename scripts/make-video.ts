@@ -78,7 +78,8 @@ async function main() {
     { stdio: "inherit" },
   );
 
-  await db.from("videos").insert({
+  // Queue row is bookkeeping — never discard a rendered video over it.
+  const { error: queueError } = await db.from("videos").insert({
     submission_id: sub.id,
     ref_id: refId,
     narration: script.narration,
@@ -89,6 +90,9 @@ async function main() {
     local_path: outPath,
     status: "ready_to_post",
   });
+  if (queueError) {
+    console.warn(`\n! Video rendered but not queued: ${queueError.message}`);
+  }
 
   console.log(`\nDone: ${outPath}`);
   console.log(`TikTok caption:\n${script.tiktok_caption}`);
