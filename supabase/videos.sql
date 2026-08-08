@@ -1,6 +1,6 @@
--- Video posting queue — run once in the SQL Editor (same as schema.sql).
+-- Video posting queue. Idempotent — safe to re-run.
 
-create table public.videos (
+create table if not exists public.videos (
   id uuid primary key default gen_random_uuid(),
   submission_id uuid not null references public.submissions(id) on delete cascade,
   ref_id text not null,
@@ -16,8 +16,14 @@ create table public.videos (
   posted_youtube_at timestamptz,
   created_at timestamptz not null default now()
 );
-create index videos_status_idx on public.videos (status, created_at desc);
+create index if not exists videos_status_idx on public.videos (status, created_at desc);
 
 alter table public.videos enable row level security;
+
+drop policy if exists "editors read videos" on public.videos;
 create policy "editors read videos" on public.videos for select to authenticated using (true);
+
+drop policy if exists "editors update videos" on public.videos;
 create policy "editors update videos" on public.videos for update to authenticated using (true);
+
+notify pgrst, 'reload schema';
