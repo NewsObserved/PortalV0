@@ -1,42 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
-import { approveSubmission, rejectSubmission, saveDraft } from "../actions";
+import { approveSubmission, rejectSubmission, reopenSubmission, saveDraft } from "../actions";
+import DraftBody from "./DraftBody";
 import PublishPanel from "./PublishPanel";
 
 export const dynamic = "force-dynamic";
-
-const MARKER_COLORS: Record<string, string> = {
-  CONFIRMED: "#4caf50",
-  SUBMITTER: "#f5c543",
-  UNCONFIRMED: "#9e1b15",
-  CONTRADICTED: "#e0261c",
-  OPEN: "#8ea4e8",
-};
-
-/** Render draft body with inline verification markers colour-coded. */
-function renderBody(body: string) {
-  const parts = body.split(/(\[(?:CONFIRMED|SUBMITTER|UNCONFIRMED|CONTRADICTED|OPEN)[^\]]*\])/g);
-  return parts.map((part, i) => {
-    const m = part.match(/^\[(CONFIRMED|SUBMITTER|UNCONFIRMED|CONTRADICTED|OPEN)/);
-    if (m) {
-      return (
-        <span
-          key={i}
-          style={{
-            color: MARKER_COLORS[m[1]],
-            fontWeight: 700,
-            fontSize: ".82em",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {part}
-        </span>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
 
 const label = { fontSize: ".66rem", fontWeight: 800, letterSpacing: ".2em", textTransform: "uppercase", color: "#8ea4e8", marginBottom: 8 } as const;
 const card = { background: "#1d1a12", border: "1px solid #33302a", borderRadius: 12, padding: "18px 20px", marginBottom: 16 } as const;
@@ -180,7 +149,7 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
               {draft.headline}
             </p>
             <p style={{ fontStyle: "italic", color: "#cfc9b8" }}>{draft.dek}</p>
-            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{renderBody(draft.body ?? "")}</div>
+            <DraftBody body={draft.body ?? ""} />
             {(draft.tags?.length ?? 0) > 0 && (
               <p style={{ fontSize: ".78rem", color: "#9a958a", marginBottom: 0 }}>
                 tags: {draft.tags.join(", ")}
@@ -240,21 +209,69 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
             </button>
           </form>
 
-          {/* Approve / reject */}
-          <div style={{ display: "flex", gap: 12 }}>
-            <form action={approveSubmission}>
-              <input type="hidden" name="submissionId" value={sub.id} />
-              <button type="submit" style={{ padding: "14px 28px", fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "#4caf50", color: "#0d1a0d", border: "none", borderRadius: 999, cursor: "pointer" }}>
-                Approve
-              </button>
-            </form>
-            <form action={rejectSubmission}>
-              <input type="hidden" name="submissionId" value={sub.id} />
-              <button type="submit" style={{ padding: "14px 28px", fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "none", border: "2px solid #9e1b15", color: "#e0261c", borderRadius: 999, cursor: "pointer" }}>
-                Reject
-              </button>
-            </form>
-          </div>
+          {/* Approve / reject — the current state is the button's state */}
+          {(() => {
+            const isApproved = ["approved", "published"].includes(sub.status);
+            const isRejected = sub.status === "rejected";
+            return (
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                {isApproved ? (
+                  <div
+                    style={{
+                      padding: "14px 28px",
+                      fontWeight: 800,
+                      letterSpacing: ".06em",
+                      textTransform: "uppercase",
+                      background: "#4caf50",
+                      color: "#0d1a0d",
+                      borderRadius: 999,
+                    }}
+                  >
+                    ✓ Approved
+                  </div>
+                ) : (
+                  <form action={approveSubmission}>
+                    <input type="hidden" name="submissionId" value={sub.id} />
+                    <button type="submit" style={{ padding: "14px 28px", fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "#4caf50", color: "#0d1a0d", border: "none", borderRadius: 999, cursor: "pointer" }}>
+                      Approve
+                    </button>
+                  </form>
+                )}
+
+                {isRejected ? (
+                  <div
+                    style={{
+                      padding: "14px 28px",
+                      fontWeight: 800,
+                      letterSpacing: ".06em",
+                      textTransform: "uppercase",
+                      background: "#9e1b15",
+                      color: "#f5f1e6",
+                      borderRadius: 999,
+                    }}
+                  >
+                    ✕ Rejected
+                  </div>
+                ) : (
+                  <form action={rejectSubmission}>
+                    <input type="hidden" name="submissionId" value={sub.id} />
+                    <button type="submit" style={{ padding: "14px 28px", fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "none", border: "2px solid #9e1b15", color: "#e0261c", borderRadius: 999, cursor: "pointer" }}>
+                      Reject
+                    </button>
+                  </form>
+                )}
+
+                {(isApproved || isRejected) && (
+                  <form action={reopenSubmission}>
+                    <input type="hidden" name="submissionId" value={sub.id} />
+                    <button type="submit" style={{ padding: "12px 20px", background: "none", border: "1px solid #33302a", color: "#9a958a", borderRadius: 999, cursor: "pointer", fontSize: ".8rem", fontFamily: "inherit" }}>
+                      Undo
+                    </button>
+                  </form>
+                )}
+              </div>
+            );
+          })()}
           <PublishPanel submissionId={sub.id} existingUrl={publishedUrl} />
         </>
       ) : (

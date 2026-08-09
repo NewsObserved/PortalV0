@@ -110,3 +110,11 @@ export async function markVideoPosted(formData: FormData) {
   await db.from("videos").update(patch).eq("id", videoId);
   revalidatePath("/dashboard/videos");
 }
+
+/** Undo an approve/reject — puts the story back in review. */
+export async function reopenSubmission(formData: FormData) {
+  const submissionId = String(formData.get("submissionId"));
+  const db = await supabaseServer();
+  await db.from("submissions").update({ status: "drafted" }).eq("id", submissionId);
+  revalidatePath(`/dashboard/${submissionId}`);
+}
