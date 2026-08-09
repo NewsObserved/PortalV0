@@ -6,6 +6,12 @@ export function isWordPressConfigured(): boolean {
   );
 }
 
+/**
+ * The byline printed at the end of every published story. Fixed text — it is
+ * a disclosure, not a credit line, so it never varies by editor or story.
+ */
+export const BYLINE = "Drafted by News Observed Editorial AI, human reviewed and published.";
+
 /** Remove inline verification markers — they're editorial annotations, not for print. */
 export function stripMarkers(body: string): string {
   return body
@@ -116,7 +122,7 @@ export async function publishDraft(input: PublishInput): Promise<PublishResult> 
     `${process.env.WORDPRESS_USER}:${process.env.WORDPRESS_APP_PASSWORD}`,
   ).toString("base64");
 
-  const byline = "AI assisted, human published.";
+  const byline = BYLINE;
 
   const mediaId = input.image ? await uploadMedia(base, input.image) : null;
 
