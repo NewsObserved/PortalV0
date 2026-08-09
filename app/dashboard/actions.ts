@@ -48,6 +48,32 @@ export async function queueVideo(submissionId: string): Promise<void> {
     ref_id: sub.ref_id,
     status: "rendering",
   });
+
+  await triggerRender();
+}
+
+/**
+ * Nudge the GitHub Actions renderer so the video starts now rather than at
+ * the next scheduled run. Best-effort: the every-15-minutes schedule is the
+ * guarantee, this is just the fast path.
+ */
+async function triggerRender(): Promise<void> {
+  const token = process.env.GITHUB_DISPATCH_TOKEN;
+  const repo = process.env.GITHUB_REPO ?? "NewsObserved/PortalV0";
+  if (!token) return;
+  try {
+    await fetch(`https://api.github.com/repos/${repo}/dispatches`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ event_type: "render-videos" }),
+    });
+  } catch {
+    /* the schedule will pick it up */
+  }
 }
 
 /** Approve a submission (ready for publishing) and queue its video. */

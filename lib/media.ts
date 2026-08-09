@@ -181,10 +181,25 @@ export async function fetchCommonsImage(
   }
 }
 
-const CHROME = join(
-  process.cwd(),
-  "node_modules/.remotion/chrome-headless-shell/mac-arm64/chrome-headless-shell-mac-arm64/chrome-headless-shell",
-);
+/** Remotion's bundled Chrome, wherever it landed for this OS/arch. */
+function findChrome(): string {
+  const root = join(process.cwd(), "node_modules/.remotion/chrome-headless-shell");
+  if (!existsSync(root)) return "";
+  try {
+    const found = execFileSync(
+      "find",
+      [root, "-name", "chrome-headless-shell", "-type", "f", "-maxdepth", "4"],
+      { encoding: "utf8", timeout: 15_000 },
+    )
+      .split("\n")
+      .filter(Boolean);
+    return found[0] ?? "";
+  } catch {
+    return "";
+  }
+}
+
+const CHROME = findChrome();
 
 function publicDir(): string {
   const dir = join(process.cwd(), "public", "media");

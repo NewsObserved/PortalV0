@@ -1,0 +1,76 @@
+name: Render approved videos
+
+# Rendering needs headless Chrome + ffmpeg, which Vercel's serverless
+# functions can't run. This does the work instead of a newsroom machine.
+on:
+  schedule:
+    # Every 15 minutes — the backbone. Approvals render within a quarter hour
+    # even if the instant trigger below never fires.
+    - cron: "*/15 * * * *"
+  # Fired by the dashboard the moment a story is approved.
+  repository_dispatch:
+    types: [render-videos]
+  # "Run workflow" button in the Actions tab.
+  workflow_dispatch:
+
+# Never render the same story twice at once.
+concurrency:
+  group: render-videos
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # Georgia is a Microsoft font and isn't on Linux; without it the
+      # masthead and headline cards render in a fallback and the brand breaks.
+      - name: Install fonts
+        run: |
+          sudo debconf-set-selections <<< "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-liberation ttf-mscorefonts-installer > /dev/null
+          sudo fc-cache -f
+
+      # Pillow backs the map stitcher and the blank-screenshot check.
+      - name: Install Python imaging
+        run: python3 -m pip install --quiet --user pillow
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure Remotion browser
+        run: npx remotion browser ensure
+
+      - name: Render queued videos
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          # Optional — lets the worker pull submitter photos from reply threads.
+          EDITORIAL_EMAIL: ${{ secrets.EDITORIAL_EMAIL }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+        run: npm run video:watch -- --once
+
+      # Handy when a render looks wrong — the mp4 is also uploaded to
+      # Supabase storage for the Editorial Desk either way.
+      - name: Keep the rendered files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-videos
+          path: out/videos/
+          if-no-files-found: ignore
+          retention-days: 7
