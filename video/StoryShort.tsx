@@ -84,7 +84,8 @@ export function StoryShort({
   const shotIndex = slots > 0 ? slotIndex % media.length : 0;
   const shot = media.length > 0 ? media[shotIndex] : null;
   const shotElapsed = ms - bodyStart - slotIndex * shotMs;
-  const kenBurns = interpolate(shotElapsed, [0, shotMs], [1.04, 1.11], {
+  // Gentle drift only — the point is to see the image, not crop into it.
+  const kenBurns = interpolate(shotElapsed, [0, shotMs], [0.99, 1.035], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -111,14 +112,30 @@ export function StoryShort({
       {/* visual bed */}
       {inBody && shot && (
         <AbsoluteFill style={{ opacity: shotFade }}>
+          {/* Blurred copy fills the 9:16 frame so the real image doesn't have
+              to be cropped to it. */}
           <Img
             src={staticFile(shot.file)}
             style={{
+              position: "absolute",
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "top center",
-              transform: `scale(${kenBurns})`,
+              filter: "blur(38px) brightness(0.45) saturate(0.8)",
+              transform: "scale(1.15)",
+            }}
+          />
+          {/* The image itself — whole, never cropped. */}
+          <Img
+            src={staticFile(shot.file)}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              transform: `translate(-50%, -50%) scale(${kenBurns})`,
             }}
           />
           {/* legibility scrim */}

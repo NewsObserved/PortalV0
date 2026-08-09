@@ -87,7 +87,17 @@ async function main() {
   console.log("Rendering video…");
   execFileSync(
     "npx",
-    ["remotion", "render", "video/index.ts", "StoryShort", outPath, `--props=${propsPath}`],
+    [
+      "remotion",
+      "render",
+      "video/index.ts",
+      "StoryShort",
+      outPath,
+      `--props=${propsPath}`,
+      // Social platforms re-encode anyway; this keeps files under the
+      // storage limit with no visible loss at phone size.
+      "--crf=28",
+    ],
     { stdio: "inherit" },
   );
 
