@@ -52,12 +52,13 @@ interface TriageResult {
   rationale: string;
   institutional_angle: string | null;
   risk_flags: string[];
+  submitter_note: string;
 }
 
 const TRIAGE_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["category", "rationale", "institutional_angle", "risk_flags"],
+  required: ["category", "rationale", "institutional_angle", "risk_flags", "submitter_note"],
   properties: {
     category: {
       type: "string",
@@ -84,6 +85,11 @@ const TRIAGE_SCHEMA = {
       items: { type: "string" },
       description:
         "Short flags, e.g. names_private_individual, criminal_allegation, secondhand_source, social_media_claim",
+    },
+    submitter_note: {
+      type: "string",
+      description:
+        "If declining: two or three warm, plain sentences the submitter will actually receive, explaining specifically why this isn't a fit and — where there is one — pointing them somewhere better (an op-ed desk, the sheriff, legal aid, a city office). Address the substance of what they sent; never generic. Do not apologise excessively, do not promise reconsideration, and never repeat an unverified accusation back to them. If not declining, return an empty string.",
     },
   },
 } as const;
@@ -133,10 +139,28 @@ export async function processSubmission(submissionId: string): Promise<RunResult
         .eq("id", sub.id);
       if (triage.result.category.startsWith("decline_")) {
         await db.from("submissions").update({ status: "declined" }).eq("id", sub.id);
+
+        // Tell them, and why. Spam is the one case that gets silence.
+        let notified = false;
+        if (triage.result.category !== "decline_spam" && triage.result.submitter_note) {
+          try {
+            const { sendDeclineNotice } = await import("./gmail");
+            notified = await sendDeclineNotice({
+              refId: sub.ref_id,
+              to: sub.submitter_email,
+              name: sub.submitter_name,
+              headline: sub.headline,
+              note: triage.result.submitter_note,
+            });
+          } catch {
+            /* the decision stands even if the note doesn't send */
+          }
+        }
+
         return {
           ref_id: sub.ref_id,
           outcome: "declined",
-          detail: `${triage.result.category}: ${triage.result.rationale}`,
+          detail: `${triage.result.category}${notified ? " · submitter notified" : ""}: ${triage.result.rationale}`,
         };
       }
       highRisk = triage.result.category === "research_high_risk";

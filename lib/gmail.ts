@@ -120,6 +120,47 @@ export async function sendPendingConfirmations(limit = 20): Promise<number> {
   return sent;
 }
 
+interface DeclineNotice {
+  refId: string;
+  to: string;
+  name: string;
+  headline: string;
+  /** The agent's plain-language explanation for this specific submission. */
+  note: string;
+}
+
+/**
+ * Tell a submitter we're not taking their story, and why. Silence is the
+ * wrong answer for someone who trusted us with something.
+ */
+export async function sendDeclineNotice(d: DeclineNotice): Promise<boolean> {
+  if (!isGmailConfigured()) return false;
+  const gmail = gmailClient();
+  const from = process.env.EDITORIAL_EMAIL!;
+
+  const firstName = d.name.split(/\s+/)[0] || "there";
+  const body = [
+    `Hi ${firstName},`,
+    "",
+    `Thank you for sending us "${d.headline}" — and for thinking of News Observed.`,
+    "",
+    "After review, this isn't one our newsroom will be taking forward.",
+    "",
+    d.note,
+    "",
+    "This isn't a judgment on what you shared, only on what our reporting desk is built to do. We'd genuinely welcome hearing from you again if something else comes up in your community.",
+    "",
+    "With respect,",
+    "Observed Editorial Team",
+    "Observer Group Newspapers of Southern California",
+    `(Reference: ${d.refId})`,
+  ].join("\n");
+
+  const raw = buildMessage(d.to, from, `About your story submission (${d.refId})`, body);
+  await gmail.users.messages.send({ userId: "me", requestBody: { raw } });
+  return true;
+}
+
 interface FollowUpEmail {
   followUpId: string;
   refId: string;
