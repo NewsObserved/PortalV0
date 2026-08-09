@@ -125,13 +125,32 @@ export default async function VideosPage() {
                 }}
               />
             ) : (
-              <p style={{ color: "#9a958a", fontSize: ".85rem" }}>
-                {v.status === "rendering"
-                  ? "Queued — this renders on the newsroom machine running the video worker, then appears here."
-                  : "Video file not uploaded yet."}{" "}
-                <code style={{ color: "#f5c543" }}>npm run video -- {v.ref_id}</code>{" "}
-                renders it now.
-              </p>
+              <div
+                style={{
+                  maxWidth: 320,
+                  aspectRatio: "9 / 16",
+                  borderRadius: 10,
+                  background: "#121009",
+                  border: "1px dashed #33302a",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  marginBottom: 16,
+                  padding: 20,
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "1.6rem" }}>🎬</div>
+                <div style={{ color: "#f5c543", fontWeight: 700, fontSize: ".9rem" }}>
+                  Making the video
+                </div>
+                <div style={{ color: "#9a958a", fontSize: ".8rem", lineHeight: 1.5 }}>
+                  Writing the script, recording the voice, and gathering the visuals.
+                  This takes a few minutes — refresh to check.
+                </div>
+              </div>
             )}
 
             {v.tiktok_caption && <CopyBox title="TikTok caption" text={v.tiktok_caption} />}
