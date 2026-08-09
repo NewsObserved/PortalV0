@@ -106,7 +106,9 @@ async function main() {
   }
 
   // Queue row is bookkeeping — never discard a rendered video over it.
-  const { error: queueError } = await db.from("videos").insert({
+  // Approval may already have created a row; fill that one in rather than
+  // leaving a phantom "rendering" entry behind.
+  const row = {
     submission_id: sub.id,
     ref_id: refId,
     narration: script.narration,
@@ -116,7 +118,16 @@ async function main() {
     duration_ms: voice.durationMs,
     local_path: outPath,
     status: "ready_to_post",
-  });
+  };
+  const { data: pending } = await db
+    .from("videos")
+    .select("id")
+    .eq("submission_id", sub.id)
+    .limit(1);
+
+  const { error: queueError } = pending?.length
+    ? await db.from("videos").update(row).eq("id", pending[0].id)
+    : await db.from("videos").insert(row);
   if (queueError) {
     console.warn(`\n! Video rendered but not queued: ${queueError.message}`);
   }

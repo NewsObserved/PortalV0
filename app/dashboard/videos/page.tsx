@@ -11,7 +11,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   posted_tiktok: { label: "Posted · TikTok", color: "#8ea4e8" },
   posted_youtube: { label: "Posted · YouTube", color: "#8ea4e8" },
   posted_all: { label: "Posted everywhere", color: "#4caf50" },
-  rendering: { label: "Rendering", color: "#9a958a" },
+  rendering: { label: "Queued for rendering", color: "#f5c543" },
   skipped: { label: "Skipped", color: "#6b675c" },
 };
 
@@ -126,8 +126,11 @@ export default async function VideosPage() {
               />
             ) : (
               <p style={{ color: "#9a958a", fontSize: ".85rem" }}>
-                Video file not uploaded yet — re-run{" "}
-                <code style={{ color: "#f5c543" }}>npm run video -- {v.ref_id}</code>
+                {v.status === "rendering"
+                  ? "Queued — this renders on the newsroom machine running the video worker, then appears here."
+                  : "Video file not uploaded yet."}{" "}
+                <code style={{ color: "#f5c543" }}>npm run video -- {v.ref_id}</code>{" "}
+                renders it now.
               </p>
             )}
 

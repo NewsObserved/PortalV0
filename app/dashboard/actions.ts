@@ -22,12 +22,36 @@ export async function saveDraft(formData: FormData) {
   revalidatePath(`/dashboard/${submissionId}`);
 }
 
-/** Approve a submission (ready for publishing). */
+/** Approve a submission (ready for publishing) and queue its video. */
 export async function approveSubmission(formData: FormData) {
   const submissionId = String(formData.get("submissionId"));
   const db = await supabaseServer();
   await db.from("submissions").update({ status: "approved" }).eq("id", submissionId);
+
+  // Queue the short automatically. Rendering needs a real machine (headless
+  // Chrome + ffmpeg), so the worker picks this up — see scripts/video-worker.ts.
+  const admin = supabaseAdmin();
+  const { data: sub } = await admin
+    .from("submissions")
+    .select("ref_id")
+    .eq("id", submissionId)
+    .single();
+  const { data: existing } = await admin
+    .from("videos")
+    .select("id")
+    .eq("submission_id", submissionId)
+    .limit(1);
+
+  if (sub && !existing?.length) {
+    await admin.from("videos").insert({
+      submission_id: submissionId,
+      ref_id: sub.ref_id,
+      status: "rendering",
+    });
+  }
+
   revalidatePath(`/dashboard/${submissionId}`);
+  revalidatePath("/dashboard/videos");
   revalidatePath("/dashboard");
 }
 

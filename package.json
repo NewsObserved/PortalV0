@@ -11,7 +11,8 @@
     "video": "tsx scripts/make-video.ts",
     "video:studio": "remotion studio video/index.ts",
     "publish:test": "tsx scripts/publish-test.ts",
-    "desk:seed": "tsx scripts/seed-desk-stories.ts"
+    "desk:seed": "tsx scripts/seed-desk-stories.ts",
+    "video:watch": "tsx scripts/video-worker.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
