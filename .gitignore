@@ -24,3 +24,4 @@ next-env.d.ts
 .env*
 .cron-secret.local
 public/media/
+public/voice-*.mp3
