@@ -66,8 +66,7 @@ export default function LoginPage() {
       {sent ? (
         <form onSubmit={verifyCode}>
           <p style={{ color: "#9a958a", marginBottom: 14 }}>
-            Check <b style={{ color: "#f5f1e6" }}>{email}</b> — enter the 6-digit
-            code from the email:
+            Enter the sign-in code for <b style={{ color: "#f5f1e6" }}>{email}</b>:
           </p>
           <input
             inputMode="numeric"
@@ -109,6 +108,13 @@ export default function LoginPage() {
             {verifying ? "Checking…" : "Sign in"}
           </button>
           {error && <p style={{ color: "#e0261c", marginTop: 12 }}>{error}</p>}
+          <button
+            type="button"
+            onClick={() => { setSent(false); setCode(""); setError(null); }}
+            style={{ marginTop: 14, background: "none", border: "none", color: "#8ea4e8", cursor: "pointer", fontFamily: "inherit", fontSize: ".85rem", textDecoration: "underline", padding: 0 }}
+          >
+            Use a different email
+          </button>
         </form>
       ) : (
         <form onSubmit={sendLink}>
@@ -147,6 +153,31 @@ export default function LoginPage() {
             Email me a link
           </button>
           {error && <p style={{ color: "#e0261c", marginTop: 12 }}>{error}</p>}
+          {/* Rate limits and mail filters must never lock an editor out. */}
+          <button
+            type="button"
+            onClick={() => {
+              if (!email) {
+                setError("Enter your email first, then use your code.");
+                return;
+              }
+              setError(null);
+              setSent(true);
+            }}
+            style={{
+              marginTop: 16,
+              background: "none",
+              border: "none",
+              color: "#8ea4e8",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: ".85rem",
+              textDecoration: "underline",
+              padding: 0,
+            }}
+          >
+            I already have a code →
+          </button>
         </form>
       )}
     </main>
