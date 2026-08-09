@@ -125,10 +125,36 @@ export async function fetchCommonsImage(
   index: number,
   purpose: string,
 ): Promise<MediaItem | null> {
+  // Narrow queries return nothing; broad ones return junk. Try both, and
+  // always restrict to photographs — without filetype:bitmap the results are
+  // dominated by scanned PDFs and book pages.
+  const words = query.split(/\s+/).filter(Boolean);
+  const variants = [
+    query,
+    words.slice(0, 4).join(" "),
+    words.slice(0, 3).join(" "),
+    words.slice(0, 2).join(" "),
+  ]
+    .filter(Boolean)
+    .map((q) => `${q} filetype:bitmap`);
+
+  for (const variant of [...new Set(variants)]) {
+    const hit = await commonsSearch(variant, refId, index, purpose);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+async function commonsSearch(
+  search: string,
+  refId: string,
+  index: number,
+  purpose: string,
+): Promise<MediaItem | null> {
   try {
     const api =
       `https://commons.wikimedia.org/w/api.php?action=query&generator=search` +
-      `&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=6` +
+      `&gsrsearch=${encodeURIComponent(search)}&gsrnamespace=6&gsrlimit=6` +
       `&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1400&format=json`;
     const raw = execFileSync("curl", ["-s", "-A", UA, api], {
       encoding: "utf8",
@@ -240,6 +266,88 @@ print(ImageStat.Stat(im).stddev[0])`,
 }
 
 /**
+ * A branded card quoting a source. Used when the page itself can't be
+ * captured cleanly — and it reads better on a phone than a screenshot does.
+ */
+export function makeEvidenceCard(
+  sourceName: string,
+  claim: string,
+  refId: string,
+  index: number,
+): MediaItem | null {
+  try {
+    const name = `card-${refId}-${index}.png`;
+    const path = join(publicDir(), name);
+    execFileSync(
+      "python3",
+      [join(process.cwd(), "scripts", "make-card.py"), sourceName, claim, path],
+      { stdio: "ignore", timeout: 60_000 },
+    );
+    if (!existsSync(path)) return null;
+    return { file: `media/${name}`, source: sourceName, kind: "screenshot" };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The visual for one cited source: its page if that can be captured cleanly,
+ * otherwise a card quoting it. Never returns a cookie wall or a CAPTCHA.
+ */
+export async function sourceVisual(
+  citation: { source_url: string; source_name: string; claim?: string },
+  refId: string,
+  index: number,
+): Promise<MediaItem | null> {
+  const blocked = UNSHOOTABLE.some((d) => citation.source_url?.includes(d));
+
+  if (!blocked && citation.source_url?.startsWith("http")) {
+    const name = `shot-${refId}-${index}.png`;
+    const path = join(publicDir(), name);
+    if (shoot(citation.source_url, path)) {
+      const { screenshotIsUsable } = await import("./video");
+      const b64 = readFileSync(path).toString("base64");
+      if (await screenshotIsUsable(b64, citation.source_name)) {
+        return { file: `media/${name}`, source: citation.source_name, kind: "screenshot" };
+      }
+      rmSync(path, { force: true }); // consent dialog, CAPTCHA or paywall
+    }
+  }
+
+  // A real photograph beats a text card — try one that fits what this shot
+  // is meant to show before falling back to quoting the source.
+  if (citation.claim) {
+    const photo = await fetchCommonsImage(
+      photoTerms(citation.claim),
+      `${refId}-alt`,
+      index,
+      citation.claim,
+    );
+    if (photo) return photo;
+  }
+
+  return citation.claim
+    ? makeEvidenceCard(citation.source_name, citation.claim, refId, index)
+    : null;
+}
+
+/** Turn a claim sentence into plain nouns Commons can actually match. */
+function photoTerms(claim: string): string {
+  const stop = new Set([
+    "the","a","an","and","or","of","to","in","on","for","with","that","this","is",
+    "are","was","were","by","from","at","as","it","its","has","have","had","not",
+    "said","says","according","new","one","four","their","they","who","been",
+  ]);
+  return claim
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 3 && !stop.has(w))
+    .slice(0, 5)
+    .join(" ");
+}
+
+/**
  * Screenshot the pages behind our citations. These are documentary evidence —
  * the source's own page, shown as it appears — not lifted photography.
  */
@@ -319,7 +427,7 @@ export async function fetchSubmitterPhotos(
 export async function collectMedia(
   submissionId: string,
   refId: string,
-  citations: { source_url: string; source_name: string }[],
+  citations: { source_url: string; source_name: string; claim?: string }[],
   plan: import("./video").PlannedShot[] = [],
 ): Promise<MediaItem[]> {
   const photos = await fetchSubmitterPhotos(submissionId, refId);
@@ -332,19 +440,17 @@ export async function collectMedia(
     } else if (shot.kind === "commons_image") {
       item = await fetchCommonsImage(shot.query, refId, i, shot.purpose);
     } else if (shot.kind === "source_page" && shot.source_url) {
-      const [only] = captureSourceScreenshots(
-        [
-          {
-            source_url: shot.source_url,
-            source_name:
-              citations.find((c) => c.source_url === shot.source_url)?.source_name ??
-              new URL(shot.source_url).hostname.replace(/^www\./, ""),
-          },
-        ],
-        `${refId}-p${i}`,
-        1,
+      const cite = citations.find((c) => c.source_url === shot.source_url);
+      item = await sourceVisual(
+        {
+          source_url: shot.source_url,
+          source_name:
+            cite?.source_name ?? new URL(shot.source_url).hostname.replace(/^www\./, ""),
+          claim: cite?.claim ?? shot.purpose,
+        },
+        refId,
+        i,
       );
-      item = only ?? null;
     }
     if (item) planned.push({ ...item, purpose: shot.purpose });
     console.log(`  ${item ? "✓" : "✗"} ${shot.kind}: ${shot.query.slice(0, 52)}`);
@@ -353,6 +459,12 @@ export async function collectMedia(
   const collected = [...photos, ...planned];
   if (collected.length >= 3) return collected;
 
-  // Thin plan — top up with straight citation screenshots.
-  return [...collected, ...captureSourceScreenshots(citations, refId, 6 - collected.length)];
+  // Thin plan — top up from remaining citations (page, else a quote card).
+  const extras: MediaItem[] = [];
+  for (const [i, c] of citations.entries()) {
+    if (collected.length + extras.length >= 6) break;
+    const item = await sourceVisual(c, `${refId}-x`, i);
+    if (item) extras.push(item);
+  }
+  return [...collected, ...extras];
 }

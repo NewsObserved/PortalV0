@@ -214,6 +214,63 @@ export async function imageFitsShot(
   }
 }
 
+/**
+ * Is this screenshot the actual page, or the wall in front of it? News sites
+ * serve headless browsers cookie dialogs, CAPTCHAs and paywalls, which look
+ * like content to a variance check but are useless on screen.
+ */
+export async function screenshotIsUsable(
+  imageBase64: string,
+  sourceName: string,
+): Promise<boolean> {
+  try {
+    const client = anthropic();
+    const response = await client.messages.create({
+      model: EDITORIAL_MODEL,
+      max_tokens: 300,
+      system:
+        "You are checking whether a screenshot of a web page is usable in a news video. REJECT it if the page is dominated by a cookie/consent dialog, a CAPTCHA or 'verify you are human' check, a paywall or subscription prompt, a login wall, an error page, or is mostly blank or still loading. ACCEPT only if the actual article or page content — headline and text — is plainly visible and readable. Answer with JSON only.",
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["usable", "reason"],
+            properties: {
+              usable: { type: "boolean" },
+              reason: { type: "string", description: "Under 12 words." },
+            },
+          },
+        },
+      },
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: "image/png", data: imageBase64 },
+            },
+            {
+              type: "text",
+              text: `Screenshot of a page from ${sourceName}. Is the page's own content clearly visible and readable?`,
+            },
+          ],
+        },
+      ],
+    } as Anthropic.MessageCreateParamsNonStreaming);
+
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { text: string }).text)
+      .join("");
+    return (JSON.parse(text) as { usable: boolean }).usable === true;
+  } catch {
+    return false;
+  }
+}
+
 interface ElevenLabsAlignment {
   characters: string[];
   character_start_times_seconds: number[];

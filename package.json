@@ -13,7 +13,8 @@
     "publish:test": "tsx scripts/publish-test.ts",
     "desk:seed": "tsx scripts/seed-desk-stories.ts",
     "video:watch": "tsx scripts/video-worker.ts",
-    "wp:fix-bylines": "tsx scripts/fix-bylines.ts"
+    "wp:fix-bylines": "tsx scripts/fix-bylines.ts",
+    "video:revisuals": "tsx scripts/revisuals.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
