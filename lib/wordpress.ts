@@ -81,5 +81,11 @@ export async function publishDraft(input: PublishInput): Promise<PublishResult> 
     throw new Error(`WordPress publish failed (${res.status}): ${text.slice(0, 300)}`);
   }
   const post = (await res.json()) as { id: number; link: string; status: string };
-  return { postId: String(post.id), url: post.link, status: post.status };
+  // A draft's public permalink 404s — send the editor to the WordPress editor
+  // instead, which is where they finish the review and hit publish.
+  const url =
+    post.status === "publish"
+      ? post.link
+      : `${base}/wp-admin/post.php?post=${post.id}&action=edit`;
+  return { postId: String(post.id), url, status: post.status };
 }

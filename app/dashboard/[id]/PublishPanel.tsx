@@ -19,12 +19,18 @@ export default function PublishPanel({
   return (
     <div style={{ marginTop: 16 }}>
       {url ? (
-        <p style={{ color: "#4caf50", fontSize: ".9rem" }}>
-          Published to WordPress →{" "}
-          <a href={url} target="_blank" rel="noreferrer" style={{ color: "#8ea4e8" }}>
-            {url}
-          </a>
-        </p>
+        <div style={{ fontSize: ".9rem" }}>
+          <p style={{ color: "#4caf50", margin: "0 0 6px" }}>
+            ✓ Sent to ognsc.com as a WordPress draft.{" "}
+            <a href={url} target="_blank" rel="noreferrer" style={{ color: "#8ea4e8" }}>
+              Open in WordPress →
+            </a>
+          </p>
+          <p style={{ color: "#9a958a", margin: 0, fontSize: ".8rem" }}>
+            It is not public yet — review it there and hit Publish in WordPress to put it
+            live.
+          </p>
+        </div>
       ) : (
         <form action={action}>
           <input type="hidden" name="submissionId" value={submissionId} />
