@@ -35,14 +35,72 @@ interface PublishInput {
   title: string;
   dek: string;
   body: string;
+  /** Kept for the publications record; the printed byline is fixed. */
   editorName: string;
   status?: "draft" | "publish";
+  /** Optional lead image, uploaded and set as the featured image. */
+  image?: {
+    bytes: Buffer;
+    filename: string;
+    mimeType: string;
+    credit: string;
+    alt: string;
+  } | null;
 }
 
 export interface PublishResult {
   postId: string;
   url: string;
   status: string;
+  /** WordPress media id of the featured image, when one was attached. */
+  mediaId?: string;
+}
+
+function authHeader(): string {
+  return (
+    "Basic " +
+    Buffer.from(
+      `${process.env.WORDPRESS_USER}:${process.env.WORDPRESS_APP_PASSWORD}`,
+    ).toString("base64")
+  );
+}
+
+/**
+ * Upload an image to the WordPress media library with its attribution as the
+ * caption. Returns the media id, or null if the upload fails — a missing
+ * photo must never block the story.
+ */
+export async function uploadMedia(
+  base: string,
+  image: NonNullable<PublishInput["image"]>,
+): Promise<string | null> {
+  try {
+    const res = await fetch(`${base}/wp-json/wp/v2/media`, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader(),
+        "Content-Type": image.mimeType,
+        "Content-Disposition": `attachment; filename="${image.filename}"`,
+      },
+      body: new Uint8Array(image.bytes),
+    });
+    if (!res.ok) return null;
+    const media = (await res.json()) as { id: number };
+
+    // Caption carries the licence credit — required for CC images.
+    await fetch(`${base}/wp-json/wp/v2/media/${media.id}`, {
+      method: "POST",
+      headers: { Authorization: authHeader(), "Content-Type": "application/json" },
+      body: JSON.stringify({
+        alt_text: image.alt,
+        caption: image.credit,
+        description: image.credit,
+      }),
+    });
+    return String(media.id);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -58,9 +116,9 @@ export async function publishDraft(input: PublishInput): Promise<PublishResult> 
     `${process.env.WORDPRESS_USER}:${process.env.WORDPRESS_APP_PASSWORD}`,
   ).toString("base64");
 
-  const byline =
-    "Reported and drafted by Observed editorial AI from submitter interviews and public records. " +
-    `Reviewed and published by ${input.editorName}.`;
+  const byline = "AI assisted, human published.";
+
+  const mediaId = input.image ? await uploadMedia(base, input.image) : null;
 
   const res = await fetch(`${base}/wp-json/wp/v2/posts`, {
     method: "POST",
@@ -73,6 +131,7 @@ export async function publishDraft(input: PublishInput): Promise<PublishResult> 
       excerpt: input.dek,
       content: toHtml(input.body, byline),
       status: input.status ?? "draft",
+      ...(mediaId ? { featured_media: Number(mediaId) } : {}),
     }),
   });
 
@@ -87,5 +146,5 @@ export async function publishDraft(input: PublishInput): Promise<PublishResult> 
     post.status === "publish"
       ? post.link
       : `${base}/wp-admin/post.php?post=${post.id}&action=edit`;
-  return { postId: String(post.id), url, status: post.status };
+  return { postId: String(post.id), url, status: post.status, mediaId: mediaId ?? undefined };
 }

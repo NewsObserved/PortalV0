@@ -96,11 +96,25 @@ export async function publishSubmission(
   if (!draft) return { error: "No draft to publish." };
 
   try {
+    // Lead photo: openly-licensed, vision-checked. Never blocks the story.
+    let image = null;
+    try {
+      const { findArticleImage } = await import("@/lib/article-image");
+      image = await findArticleImage({
+        headline: draft.headline ?? "",
+        dek: draft.dek,
+        body: draft.body ?? "",
+      });
+    } catch {
+      /* publish without a photo rather than not at all */
+    }
+
     const result = await publishDraft({
       title: draft.headline ?? "",
       dek: draft.dek ?? "",
       body: draft.body ?? "",
       editorName: user.email ?? "Observed editor",
+      image,
     });
     const admin = supabaseAdmin();
     await admin.from("publications").insert({
