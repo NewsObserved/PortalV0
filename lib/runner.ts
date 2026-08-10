@@ -182,16 +182,33 @@ export async function processSubmission(submissionId: string): Promise<RunResult
   }
 }
 
-/** Process up to `limit` new submissions (the cron entry point). */
+/** A run that died mid-research leaves the row claimed; reclaim it after this. */
+const STALE_RESEARCH_MINUTES = 30;
+
+/** Process up to `limit` submissions: new ones, plus any stranded mid-run. */
 export async function processQueue(limit = 3): Promise<RunResult[]> {
   const db = supabaseAdmin();
-  const { data, error } = await db
+
+  const { data: fresh, error } = await db
     .from("submissions")
     .select("id")
     .eq("status", "new")
     .order("created_at", { ascending: true })
     .limit(limit);
   if (error) throw error;
+
+  // Recover anything left claimed by a run that never finished — without this
+  // a killed process strands a story in 'researching' permanently.
+  const staleBefore = new Date(Date.now() - STALE_RESEARCH_MINUTES * 60_000).toISOString();
+  const { data: stale } = await db
+    .from("submissions")
+    .select("id")
+    .eq("status", "researching")
+    .lt("created_at", staleBefore)
+    .order("created_at", { ascending: true })
+    .limit(Math.max(0, limit - (fresh?.length ?? 0)));
+
+  const data = [...(fresh ?? []), ...(stale ?? [])];
   const results: RunResult[] = [];
   for (const row of data ?? []) {
     results.push(await processSubmission((row as { id: string }).id));

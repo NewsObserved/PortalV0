@@ -139,6 +139,46 @@ CAUTION: Do not overstate a single poll. Attribute clearly to the polling organi
 
 SOURCES: capitalbnews.org (2026 midterms, Black men voters poll).`,
   },
+  {
+    ref_id: "NO-DESK07",
+    day: "Saturday",
+    headline: "August is National Black Business Month — and almost nobody knows who started it",
+    category: "Business",
+    location: "National",
+    story: `DESK ASSIGNMENT — national slate, POSITIVE story. Timely: it is August now.
+
+VERIFIED: August is National Black Business Month. It was created in 2004 by engineer Frederick E. Jordan and historian John William Templeton, to drive the policy agenda affecting what was then counted as 2.6 million African-American businesses and to build economic freedom in Black communities. Separately, the US Federal Reserve has found Black entrepreneurs are roughly twice as likely to be turned down for loans as white counterparts.
+
+VERIFY BEFORE USING: The current count of Black-owned businesses in the US and its source and year — the 2.6 million figure needs a date attached. Confirm Jordan's and Templeton's roles and whether either is still living. Confirm the Fed finding and its year. Look for 2026 growth data on Black business formation, which has been notably strong in recent years — if that holds up it is the heart of the story.
+
+WHY IT IS OURS: A designated month most people have never heard of, with a founding story nobody tells, during the month itself. Positive and useful — viewers can act on it today.
+
+TONE: This one is celebratory and practical, not an accountability piece. Lead with the scale of Black business ownership now, name the two men who started the month, and close on what the growth looks like. Do not make the loan-discrimination stat the centre of gravity; it is context, not the story.
+
+REPORTING TASKS: Find two or three named Black-owned businesses with real 2026 milestones worth naming. Get the current national figures from Census or Fed data.
+
+SOURCES: National Black Business Month origin (Jordan/Templeton, 2004); US Federal Reserve small business credit survey; US Census Annual Business Survey.`,
+  },
+  {
+    ref_id: "NO-DESK08",
+    day: "Sunday (week 2)",
+    headline: "Laila Edwards made Team USA history — and most people never heard about it",
+    category: "Sports",
+    location: "National",
+    story: `DESK ASSIGNMENT — national slate, POSITIVE story.
+
+REPORTED BUT UNVERIFIED: Laila Edwards is described as the first Black woman to represent Team USA in Olympic ice hockey, in connection with the 2026 Winter Games in Milan, Italy. EVERY element of this needs independent confirmation before drafting: her full name and spelling, the exact nature of the "first" (first Black woman on the US Olympic women's hockey team? first to score? first at a World Championship versus the Olympics — these are different claims and are often conflated), the year, and the result. Historic-first claims are frequently overstated in aggregation; verify against USA Hockey, the IIHF, or Team USA directly, and state the first precisely as the record supports.
+
+IF THE CLAIM DOES NOT HOLD UP: Say so in editor notes and recommend against publication rather than softening it. A wrong "first" is the kind of error that gets a Black newsroom dismissed.
+
+WHY IT IS OURS: A young Black woman breaking a barrier in one of the whitest sports in America, in a sport our audience is rarely shown. If it checks out it is a genuinely joyful story, and the under-coverage is itself part of it.
+
+TONE: Celebratory. Center her, not the barrier. Find her own words if any exist on the record.
+
+REPORTING TASKS: Confirm with USA Hockey. Find where she is from and where she plays now. Look for on-record quotes from her. Establish how much mainstream coverage the milestone actually received.
+
+SOURCES: USA Hockey, Team USA, IIHF; secondary mentions in Word In Black and BET good-news roundups.`,
+  },
 ];
 
 async function main() {
