@@ -199,12 +199,13 @@ async function main() {
         submitter_email: process.env.EDITORIAL_EMAIL ?? "observernews@gmail.com",
         relation: `Desk assignment — ${s.day} slot`,
         privacy: "named",
-        consent: true,
-        status: "new",
+        // Desk assignments have no submitter to interview — the agent must
+        // draft from research rather than emailing follow-up questions to us.
+        consent: false,
         // No receipt for our own assignments.
         confirmation_sent_at: new Date().toISOString(),
       },
-      { onConflict: "ref_id" },
+      { onConflict: "ref_id", ignoreDuplicates: true },
     );
     console.log(error ? `✗ ${s.ref_id}: ${error.message}` : `✓ ${s.ref_id} — ${s.day}: ${s.headline.slice(0, 60)}`);
   }

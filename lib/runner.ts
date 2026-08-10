@@ -198,15 +198,28 @@ export async function processQueue(limit = 3): Promise<RunResult[]> {
   if (error) throw error;
 
   // Recover anything left claimed by a run that never finished — without this
-  // a killed process strands a story in 'researching' permanently.
+  // a killed process strands a story in 'researching' permanently. Staleness
+  // is measured from the last agent activity, not the submission date: a story
+  // seeded days ago can be legitimately mid-research right now.
   const staleBefore = new Date(Date.now() - STALE_RESEARCH_MINUTES * 60_000).toISOString();
-  const { data: stale } = await db
+  const { data: claimed } = await db
     .from("submissions")
     .select("id")
     .eq("status", "researching")
-    .lt("created_at", staleBefore)
-    .order("created_at", { ascending: true })
-    .limit(Math.max(0, limit - (fresh?.length ?? 0)));
+    .order("created_at", { ascending: true });
+
+  const stale: { id: string }[] = [];
+  for (const row of claimed ?? []) {
+    if (stale.length >= limit - (fresh?.length ?? 0)) break;
+    const { data: lastRun } = await db
+      .from("agent_runs")
+      .select("created_at")
+      .eq("submission_id", row.id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const lastActivity = lastRun?.[0]?.created_at;
+    if (!lastActivity || lastActivity < staleBefore) stale.push(row as { id: string });
+  }
 
   const data = [...(fresh ?? []), ...(stale ?? [])];
   const results: RunResult[] = [];
