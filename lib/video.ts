@@ -271,6 +271,97 @@ export async function screenshotIsUsable(
   }
 }
 
+const ONES = [
+  "zero","one","two","three","four","five","six","seven","eight","nine","ten",
+  "eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen",
+  "eighteen","nineteen",
+];
+const TENS = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+
+function under100(n: number): string {
+  if (n < 20) return ONES[n];
+  const t = TENS[Math.floor(n / 10)];
+  const o = n % 10;
+  return o ? `${t} ${ONES[o]}` : t;
+}
+
+/** Years the way a person reads them aloud. */
+function yearToWords(y: number): string {
+  if (y >= 2000 && y <= 2099) {
+    const rest = y - 2000;
+    return rest === 0 ? "two thousand" : `two thousand ${under100(rest)}`;
+  }
+  if (y >= 1100 && y <= 1999) {
+    const hi = Math.floor(y / 100);
+    const lo = y % 100;
+    if (lo === 0) return `${under100(hi)} hundred`;
+    return `${under100(hi)} ${lo < 10 ? `oh ${ONES[lo]}` : under100(lo)}`;
+  }
+  return String(y);
+}
+
+/**
+ * Names the model mispronounces. Spelled the way it should SOUND — these are
+ * never shown on screen, only spoken.
+ */
+const SAY_AS: Record<string, string> = {
+  milan: "Milawn",
+  "u.s.": "U S",
+  "u.s": "U S",
+  ncaa: "N C double A",
+  hbcu: "H B C U",
+  hbcus: "H B C Us",
+  usda: "U S D A",
+  fppc: "F P P C",
+  dcss: "D C S S",
+};
+
+/**
+ * Rewrite narration for the voice while keeping the on-screen wording intact.
+ *
+ * Returns the text to speak plus, for each display word, how many spoken words
+ * it became — so the per-word timings that come back can be folded back onto
+ * the words the viewer actually reads.
+ */
+export function prepareNarration(text: string): { spoken: string; groups: number[] } {
+  const displayWords = text.split(/\s+/).filter(Boolean);
+  const spokenParts: string[] = [];
+  const groups: number[] = [];
+
+  for (const word of displayWords) {
+    // Strip surrounding punctuation before matching, but keep interior dots
+    // and hyphens ("U.S.", "2-1", "22-year-old").
+    const bare = word.replace(/[^A-Za-z0-9.'-]/g, "").replace(/^[.'-]+|[.,;:!?'-]+$/g, "");
+    const key = bare.toLowerCase();
+    let say: string;
+
+    if (SAY_AS[key]) {
+      say = SAY_AS[key];
+    } else if (/^\d{4}$/.test(bare) && +bare >= 1100 && +bare <= 2099) {
+      say = yearToWords(+bare);
+    } else if (/^\d{1,2}-\d{1,2}$/.test(bare)) {
+      // A score: "2-1" reads as "two to one", not "two dash one".
+      const [a, b] = bare.split("-").map(Number);
+      say = `${under100(a)} to ${under100(b)}`;
+    } else if (/^\d{1,3}-year-old$/i.test(bare)) {
+      say = `${under100(parseInt(bare, 10))} year old`;
+    } else {
+      say = word;
+      spokenParts.push(say);
+      groups.push(1);
+      continue;
+    }
+
+    // Carry trailing punctuation so the read keeps its pauses.
+    const trailing = word.match(/[.,;:!?—-]+$/)?.[0] ?? "";
+    const words = `${say}${trailing}`.split(/\s+/).filter(Boolean);
+    spokenParts.push(...words);
+    groups.push(words.length);
+  }
+
+  return { spoken: spokenParts.join(" "), groups };
+}
+
 interface ElevenLabsAlignment {
   characters: string[];
   character_start_times_seconds: number[];
@@ -319,13 +410,17 @@ export async function synthesizeVoice(narration: string, refId: string): Promise
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY not set in .env.local");
   const voiceId = process.env.ELEVENLABS_VOICE_ID ?? "21m00Tcm4TlvDq8ikWAM"; // "Rachel" default
 
+  // Speak years, scores and tricky names correctly without changing what the
+  // viewer reads on screen.
+  const { spoken, groups } = prepareNarration(narration);
+
   const res = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps`,
     {
       method: "POST",
       headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: narration,
+        text: spoken,
         model_id: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
         // Low stability + style = more inflection and less monotone; slightly
         // quick delivery for social pacing.
@@ -345,7 +440,22 @@ export async function synthesizeVoice(narration: string, refId: string): Promise
   const audioFile = `voice-${refId}.mp3`;
   writeFileSync(join(process.cwd(), "public", audioFile), Buffer.from(data.audio_base64, "base64"));
 
-  const words = alignmentToWords(data.alignment);
+  // Fold the spoken-word timings back onto the display wording.
+  const spokenWords = alignmentToWords(data.alignment);
+  const displayWords = narration.split(/\s+/).filter(Boolean);
+  const words: TimedWord[] = [];
+  let cursor = 0;
+  for (let i = 0; i < groups.length && cursor < spokenWords.length; i++) {
+    const span = spokenWords.slice(cursor, cursor + groups[i]);
+    cursor += groups[i];
+    if (!span.length) break;
+    words.push({
+      text: displayWords[i] ?? span.map((w) => w.text).join(" "),
+      startMs: span[0].startMs,
+      endMs: span[span.length - 1].endMs,
+    });
+  }
+
   const durationMs = Math.ceil(words[words.length - 1]?.endMs ?? 0);
   return { audioFile, words, durationMs };
 }
