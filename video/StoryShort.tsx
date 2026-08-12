@@ -31,6 +31,8 @@ export type StoryShortProps = {
   /** Filename inside public/ (staticFile), or null for silent preview renders. */
   audioFile: string | null;
   durationMs: number;
+  /** Alternate call-to-action above the domain. Defaults to the standard one. */
+  outroLine?: string;
 };
 
 const BLACK = "#121009";
@@ -61,6 +63,7 @@ export function StoryShort({
   media,
   audioFile,
   durationMs,
+  outroLine,
 }: StoryShortProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -297,8 +300,17 @@ export function StoryShort({
         >
           News <span style={{ color: RED }}>Observed</span>
         </div>
-        <div style={{ fontSize: 38, color: PAPER, marginBottom: 26, textAlign: "center" }}>
-          To submit your news, visit us at
+        <div
+          style={{
+            fontSize: 38,
+            color: PAPER,
+            marginBottom: 26,
+            textAlign: "center",
+            padding: "0 60px",
+            lineHeight: 1.3,
+          }}
+        >
+          {outroLine ?? "To submit your news, visit us at"}
         </div>
         <div
           style={{

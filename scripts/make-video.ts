@@ -27,6 +27,8 @@ function loadEnv() {
 async function main() {
   loadEnv();
   const refId = process.argv[2];
+  // Per-story call to action, e.g. a comment prompt on a celebratory post.
+  const outroArg = process.argv.find((a) => a.startsWith("--outro="))?.slice(8);
   if (!refId) {
     console.error("Usage: npm run video -- <ref_id>");
     process.exit(1);
@@ -55,8 +57,16 @@ async function main() {
   console.log(`Writing script for ${refId}…`);
   const script = await generateScript(draft);
 
-  console.log(`Synthesizing voice (${script.narration.split(" ").length} words)…`);
-  const voice = await synthesizeVoice(script.narration, refId);
+  // Swap the standard closing sentence for a custom one when asked.
+  const narration = outroArg
+    ? script.narration.replace(
+        /To submit your news[^]*$/,
+        outroArg.replace(/newsobserved\.com/gi, "news observed dot com"),
+      )
+    : script.narration;
+
+  console.log(`Synthesizing voice (${narration.split(" ").length} words)…`);
+  const voice = await synthesizeVoice(narration, refId);
   console.log(`Voice: ${(voice.durationMs / 1000).toFixed(1)}s`);
 
   console.log("Planning visuals…");
@@ -78,6 +88,7 @@ async function main() {
     media,
     audioFile: voice.audioFile,
     durationMs: voice.durationMs,
+    ...(outroArg ? { outroLine: outroArg.replace(/\s*newsobserved\.com\s*$/i, "").trim() } : {}),
   };
   const propsPath = join(process.cwd(), "out", `props-${refId}.json`);
   mkdirSync(join(process.cwd(), "out", "videos"), { recursive: true });
@@ -121,7 +132,7 @@ async function main() {
   const row = {
     submission_id: sub.id,
     ref_id: refId,
-    narration: script.narration,
+    narration,
     tiktok_caption: script.tiktok_caption,
     youtube_title: script.youtube_title,
     youtube_description: script.youtube_description,

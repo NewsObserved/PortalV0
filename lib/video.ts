@@ -293,6 +293,27 @@ function under100(n: number): string {
   return o ? `${t} ${ONES[o]}` : t;
 }
 
+const SCALES: [number, string][] = [
+  [1_000_000_000, "billion"],
+  [1_000_000, "million"],
+  [1_000, "thousand"],
+];
+
+/** Whole numbers spoken the way a person says them, not digit by digit. */
+function numberToWords(n: number): string {
+  if (n < 100) return under100(n);
+  for (const [value, name] of SCALES) {
+    if (n >= value) {
+      const hi = Math.floor(n / value);
+      const rest = n % value;
+      return `${numberToWords(hi)} ${name}${rest ? ` ${numberToWords(rest)}` : ""}`;
+    }
+  }
+  const hundreds = Math.floor(n / 100);
+  const rest = n % 100;
+  return `${ONES[hundreds]} hundred${rest ? ` ${under100(rest)}` : ""}`;
+}
+
 /** Years the way a person reads them aloud. */
 function yearToWords(y: number): string {
   if (y >= 2000 && y <= 2099) {
@@ -339,7 +360,8 @@ export function prepareNarration(text: string): { spoken: string; groups: number
   for (const word of displayWords) {
     // Strip surrounding punctuation before matching, but keep interior dots
     // and hyphens ("U.S.", "2-1", "22-year-old").
-    const bare = word.replace(/[^A-Za-z0-9.'-]/g, "").replace(/^[.'-]+|[.,;:!?'-]+$/g, "");
+    // Keep interior commas and dots ("124,000", "U.S.", "12.6"); trim the rest.
+    const bare = word.replace(/[^A-Za-z0-9.,'-]/g, "").replace(/^[.,'-]+|[.,;:!?'-]+$/g, "");
     const key = bare.toLowerCase();
     let say: string;
 
@@ -353,6 +375,15 @@ export function prepareNarration(text: string): { spoken: string; groups: number
       say = `${under100(a)} to ${under100(b)}`;
     } else if (/^\d{1,3}-year-old$/i.test(bare)) {
       say = `${under100(parseInt(bare, 10))} year old`;
+    } else if (/^\d{1,3}(,\d{3})+$/.test(bare)) {
+      // "124,000" must not be read as digits or as a phone number.
+      say = numberToWords(Number(bare.replace(/,/g, "")));
+    } else if (/^\d+\.\d+$/.test(bare)) {
+      // "12.6" -> "twelve point six"
+      const [whole, frac] = bare.split(".");
+      say = `${numberToWords(Number(whole))} point ${frac.split("").map((d) => ONES[+d]).join(" ")}`;
+    } else if (/^\d{1,3}$/.test(bare) && +bare > 100) {
+      say = numberToWords(+bare);
     } else {
       say = word;
       spokenParts.push(say);
