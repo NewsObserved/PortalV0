@@ -58,7 +58,9 @@ export async function generateScript(story: {
   const client = anthropic();
   const response = await client.messages.create({
     model: EDITORIAL_MODEL,
-    max_tokens: 2000,
+    // Long stories produced responses that hit the cap and returned truncated
+    // JSON, failing the parse.
+    max_tokens: 6000,
     system:
       "You turn verified local news stories from News Observed (Black press, Southern California, since 1974) into short-form video scripts. Voice: direct, human, community-first — never clickbait that overpromises, never AI-sounding filler. The narration must only contain facts present in the story.",
     output_config: { format: { type: "json_schema", schema: SCRIPT_SCHEMA } },
@@ -73,7 +75,13 @@ export async function generateScript(story: {
     .filter((b) => b.type === "text")
     .map((b) => (b as { text: string }).text)
     .join("");
-  return JSON.parse(text) as VideoScript;
+  try {
+    return JSON.parse(text) as VideoScript;
+  } catch {
+    throw new Error(
+      `Script generation returned unparseable JSON (stop_reason=${response.stop_reason}, ${text.length} chars). Likely truncated.`,
+    );
+  }
 }
 
 /** One visual the agent decided the story needs, and why. */
