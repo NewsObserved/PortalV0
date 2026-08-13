@@ -11,7 +11,12 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { synthesizeVoice } from "../lib/video";
-import { fetchCommonsImage, makeEvidenceCard, type MediaItem } from "../lib/media";
+import {
+  fetchCommonsFile,
+  fetchCommonsImage,
+  makeEvidenceCard,
+  type MediaItem,
+} from "../lib/media";
 
 function loadEnv() {
   try {
@@ -35,6 +40,8 @@ interface Spot {
   outroLine: string;
   outroDomain?: string;
   cardText: string;
+  /** Exact Commons files — used when the shot must be a specific picture. */
+  pinnedFiles?: string[];
   imageQueries: string[];
 }
 
@@ -46,14 +53,14 @@ const SPOTS: Record<string, Spot> = {
     outroLine: "Tell us what they buried",
     cardText:
       "Free. Anonymous if you want. Verified by real reporters. Reviewed by a human editor before a word runs.",
-    // One shot per edition — Kern, LA, Antelope Valley — so viewers in each
-    // market see their own place, plus the lineage shot.
-    imageQueries: [
-      "African American newspaper history",
-      "Los Angeles California neighborhood street",
-      "Bakersfield California downtown",
-      "Lancaster California Antelope Valley",
+    // One shot per edition — LA, Kern, Antelope Valley. The city signs are
+    // pinned by filename: a viewer should recognise their own town instantly,
+    // and search results drift between runs.
+    pinnedFiles: [
+      "Ladera Heights neighborhood sign.jpg",
+      "Bakersfield CA - sign.jpg",
     ],
+    imageQueries: ["Lancaster California Antelope Valley"],
     narration: [
       "Most newsrooms were never built for us.",
       "Observer Group Newspapers has covered Black Southern California since 1974,",
@@ -157,6 +164,12 @@ async function main() {
   if (card) {
     media.push({ ...card, source: "" });
     console.log("  ✓ promise card");
+  }
+
+  for (const [i, title] of (spot.pinnedFiles ?? []).entries()) {
+    const img = fetchCommonsFile(title, REF, i);
+    console.log(`  ${img ? "✓" : "✗"} ${title}`);
+    if (img) media.push(img);
   }
 
   for (const [i, query] of spot.imageQueries.entries()) {

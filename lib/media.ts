@@ -118,6 +118,60 @@ export function fetchMap(query: string, refId: string, index: number): MediaItem
   }
 }
 
+/**
+ * Fetch one specific Commons file by title. Search results shift between runs,
+ * so anything that must be a particular picture — a city's own sign — is
+ * pinned by name rather than searched for.
+ */
+export function fetchCommonsFile(
+  title: string,
+  refId: string,
+  index: number,
+): MediaItem | null {
+  try {
+    const api =
+      `https://commons.wikimedia.org/w/api.php?action=query` +
+      `&titles=${encodeURIComponent(`File:${title}`)}` +
+      `&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1600&format=json`;
+    const raw = execFileSync("curl", ["-s", "-A", UA, api], {
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    const pages = JSON.parse(raw)?.query?.pages ?? {};
+
+    for (const page of Object.values(pages) as {
+      imageinfo?: {
+        thumburl?: string;
+        url: string;
+        extmetadata?: Record<string, { value: string }>;
+      }[];
+    }[]) {
+      const info = page.imageinfo?.[0];
+      if (!info) continue;
+      const meta = info.extmetadata ?? {};
+      const licence = meta.LicenseShortName?.value ?? "";
+      if (!/public domain|^cc|cc0|attribution/i.test(licence)) continue;
+
+      const src = info.thumburl ?? info.url;
+      const ext = /\.png$/i.test(src.split("?")[0]) ? "png" : "jpg";
+      const name = `pinned-${refId}-${index}.${ext}`;
+      const path = join(publicDir(), name);
+      execFileSync("curl", ["-s", "-A", UA, "-o", path, src], { timeout: 45_000 });
+      if (!existsSync(path)) continue;
+
+      const artist = (meta.Artist?.value ?? "").replace(/<[^>]+>/g, "").trim();
+      return {
+        file: `media/${name}`,
+        source: artist ? `${artist} / Wikimedia (${licence})` : `Wikimedia (${licence})`,
+        kind: "image",
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /** Search Wikimedia Commons for an openly-licensed photo and download it. */
 export async function fetchCommonsImage(
   query: string,
