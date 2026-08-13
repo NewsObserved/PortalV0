@@ -148,24 +148,26 @@ export function StoryShort({
                 "linear-gradient(180deg, rgba(18,16,9,.86) 0%, rgba(18,16,9,.72) 17%, rgba(18,16,9,.06) 34%, rgba(18,16,9,.10) 52%, rgba(18,16,9,.88) 72%, rgba(18,16,9,.97) 84%)",
             }}
           />
-          {/* source credit */}
-          <div
-            style={{
-              position: "absolute",
-              top: 268,
-              left: 60,
-              background: shot.kind === "photo" ? RED : BLUE,
-              color: PAPER,
-              fontWeight: 800,
-              fontSize: 24,
-              letterSpacing: ".1em",
-              textTransform: "uppercase",
-              padding: "10px 20px",
-              maxWidth: 900,
-            }}
-          >
-            {shot.kind === "photo" ? "Submitted photo" : shot.source}
-          </div>
+          {/* source credit — omitted when there is nothing to attribute */}
+          {(shot.kind === "photo" || shot.source) && (
+            <div
+              style={{
+                position: "absolute",
+                top: 268,
+                left: 60,
+                background: shot.kind === "photo" ? RED : BLUE,
+                color: PAPER,
+                fontWeight: 800,
+                fontSize: 24,
+                letterSpacing: ".1em",
+                textTransform: "uppercase",
+                padding: "10px 20px",
+                maxWidth: 900,
+              }}
+            >
+              {shot.kind === "photo" ? "Submitted photo" : shot.source}
+            </div>
+          )}
         </AbsoluteFill>
       )}
 
