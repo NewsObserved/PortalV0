@@ -33,12 +33,12 @@ const SCRIPT_SCHEMA = {
     kicker: {
       type: "string",
       description:
-        "The story's location as CITY, STATE (e.g. 'Jackson, Mississippi') — this is the orientation chip on the intro card. Use a short label like 'Community Report' only if the story has no single location.",
+        "ALWAYS a place, never a label. Use CITY, STATE ('Jackson, Mississippi'); for a statewide story use the state alone ('Iowa'); for a genuinely national story name the region or 'Across the U.S.'. Never write things like 'Statewide Report' or 'Community Report' — this chip exists to tell a scrolling stranger where they are.",
     },
     narration: {
       type: "string",
       description:
-        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. THE FIRST SENTENCE MUST NAME THE CITY AND STATE where the story happens, so a scroller is oriented immediately (e.g. 'Jackson, Mississippi.' or 'In Memphis, Tennessee —'). Then the hook: a line that makes someone stop scrolling. Then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. Vary sentence length so the read has natural rhythm. No hashtags, no emoji, no stage directions — only the words to be spoken. The script MUST end with exactly this sentence, verbatim, as its final line: \"To submit your news, visit us at news observed dot com.\"",
+        "A 30-40 second spoken script — roughly 90-120 words, NEVER more. THE FIRST WORDS MUST BE THE PLACE, because the audience is national and a stranger scrolling needs to know instantly where this is happening: use CITY, STATE ('Jackson, Mississippi.'), the state alone if the story is statewide ('Iowa.'), or the region if genuinely national ('Across the country.'). Never open with anything but the location. Then the hook: a line that makes someone stop scrolling. Then short punchy sentences, one idea each. Cut every clause that isn't load-bearing. Plain and urgent, the way a person talks, not the way a press release reads. Vary sentence length so the read has natural rhythm. No hashtags, no emoji, no stage directions — only the words to be spoken. The script MUST end with exactly this sentence, verbatim, as its final line: \"To submit your news, visit us at news observed dot com.\"",
     },
     tiktok_caption: {
       type: "string",
