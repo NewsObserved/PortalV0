@@ -46,10 +46,13 @@ const SPOTS: Record<string, Spot> = {
     outroLine: "Tell us what they buried",
     cardText:
       "Free. Anonymous if you want. Verified by real reporters. Reviewed by a human editor before a word runs.",
+    // One shot per edition — Kern, LA, Antelope Valley — so viewers in each
+    // market see their own place, plus the lineage shot.
     imageQueries: [
       "African American newspaper history",
       "Los Angeles California neighborhood street",
-      "community meeting people talking",
+      "Bakersfield California downtown",
+      "Lancaster California Antelope Valley",
     ],
     narration: [
       "Most newsrooms were never built for us.",
