@@ -33,6 +33,8 @@ export type StoryShortProps = {
   durationMs: number;
   /** Alternate call-to-action above the domain. Defaults to the standard one. */
   outroLine?: string;
+  /** Alternate destination on the outro button, e.g. a donation page. */
+  outroDomain?: string;
 };
 
 const BLACK = "#121009";
@@ -64,6 +66,7 @@ export function StoryShort({
   audioFile,
   durationMs,
   outroLine,
+  outroDomain,
 }: StoryShortProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -326,7 +329,7 @@ export function StoryShort({
             boxShadow: `10px 10px 0 ${PAPER}`,
           }}
         >
-          newsobserved.com
+          {outroDomain ?? "newsobserved.com"}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
