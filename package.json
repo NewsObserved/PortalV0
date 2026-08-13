@@ -15,7 +15,8 @@
     "video:watch": "tsx scripts/video-worker.ts",
     "wp:fix-bylines": "tsx scripts/fix-bylines.ts",
     "video:revisuals": "tsx scripts/revisuals.ts",
-    "ad": "tsx scripts/make-ad.ts"
+    "ad": "tsx scripts/make-ad.ts",
+    "video:revoice": "tsx scripts/revoice.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

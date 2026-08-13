@@ -315,7 +315,7 @@ export function StoryShort({
             lineHeight: 1.3,
           }}
         >
-          {outroLine ?? "To submit your news, visit us at"}
+          {outroLine ?? "To submit your story, visit us at"}
         </div>
         <div
           style={{

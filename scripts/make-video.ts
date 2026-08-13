@@ -60,7 +60,7 @@ async function main() {
   // Swap the standard closing sentence for a custom one when asked.
   const narration = outroArg
     ? script.narration.replace(
-        /To submit your news[^]*$/,
+        /To submit your (news|story)[^]*$/,
         outroArg.replace(/newsobserved\.com/gi, "news observed dot com"),
       )
     : script.narration;
