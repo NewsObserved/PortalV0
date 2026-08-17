@@ -25,7 +25,7 @@ export default async function SubmissionDetail({ params }: { params: Promise<{ i
     .from("drafts")
     .select("*")
     .eq("submission_id", id)
-    .order("version", { ascending: false });
+    .order("created_at", { ascending: false });
   const draft = drafts?.[0] ?? null;
 
   const { data: followUps } = await db

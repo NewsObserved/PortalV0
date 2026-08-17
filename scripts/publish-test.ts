@@ -22,7 +22,7 @@ async function main() {
   const { data: draft } = await db
     .from("drafts")
     .select("headline, dek, body")
-    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .single();
   if (!draft) throw new Error("no draft found");

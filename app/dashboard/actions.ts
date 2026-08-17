@@ -123,7 +123,7 @@ export async function publishSubmission(
     .from("drafts")
     .select("*")
     .eq("submission_id", submissionId)
-    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1);
   const draft = drafts?.[0];
   if (!draft) return { error: "No draft to publish." };

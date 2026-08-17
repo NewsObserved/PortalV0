@@ -22,7 +22,7 @@ async function main() {
   const { data: sub } = await db.from("submissions").select("id").eq("ref_id", ref).single();
   const { data: d } = await db
     .from("drafts").select("headline,dek,body")
-    .eq("submission_id", sub!.id).order("version", { ascending: false }).limit(1).single();
+    .eq("submission_id", sub!.id).order("created_at", { ascending: false }).limit(1).single();
 
   console.log("story:", d!.headline.slice(0, 70));
   const image = await findArticleImage({ headline: d!.headline, dek: d!.dek, body: d!.body });

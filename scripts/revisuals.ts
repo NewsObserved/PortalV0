@@ -24,7 +24,7 @@ async function main() {
   const { data: sub } = await db.from("submissions").select("id").eq("ref_id", ref).single();
   const { data: d } = await db
     .from("drafts").select("headline,dek,body,citations")
-    .eq("submission_id", sub!.id).order("version", { ascending: false }).limit(1).single();
+    .eq("submission_id", sub!.id).order("created_at", { ascending: false }).limit(1).single();
 
   const plan = await planVisuals(d as never, (d as { citations?: [] }).citations ?? []);
   for (const s of plan) console.log(`  · ${s.kind}: ${s.purpose.slice(0, 80)}`);

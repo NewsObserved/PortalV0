@@ -49,7 +49,7 @@ async function main() {
     .from("drafts")
     .select("headline, dek, body, citations")
     .eq("submission_id", sub.id)
-    .order("version", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .single();
   if (!draft?.body) throw new Error(`No draft body for ${refId} — run the agent first`);
