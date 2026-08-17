@@ -337,12 +337,26 @@ const SAY_AS: Record<string, string> = {
   milan: "Milawn",
   "u.s.": "U S",
   "u.s": "U S",
+  // Said the way people say them, not spelled straight through.
+  naacp: "N double A C P",
+  "naacp's": "N double A C P's",
   ncaa: "N C double A",
+  aclu: "A C L U",
   hbcu: "H B C U",
   hbcus: "H B C Us",
   usda: "U S D A",
+  eeoc: "E E O C",
   fppc: "F P P C",
   dcss: "D C S S",
+  tbi: "T B I",
+  dea: "D E A",
+  cpd: "C P D",
+  idot: "I D O T",
+  sro: "S R O",
+  sros: "S R Os",
+  prri: "P R R I",
+  ame: "A M E",
+  cogic: "C O G I C",
 };
 
 /**
