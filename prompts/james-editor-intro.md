@@ -11,7 +11,8 @@ that make it his, and inventing them would be worse than leaving them out.
 
 ## The script
 
-> You've been watching these videos. Let me tell you who's behind them.
+> Thank you for watching and engaging with our videos. Just wanted to show you
+> who's behind them.
 >
 > I'm James Luckey. I run Observer Group Newspapers — Black press in Southern
 > California since 1974. [ONE LINE ABOUT HIS OWN CONNECTION — how he came to
