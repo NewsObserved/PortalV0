@@ -168,7 +168,7 @@ export function StoryShort({
                 maxWidth: 900,
               }}
             >
-              {shot.kind === "photo" ? "Submitted photo" : shot.source}
+              {shot.kind === "photo" ? shot.source || "Submitted photo" : shot.source}
             </div>
           )}
         </AbsoluteFill>
