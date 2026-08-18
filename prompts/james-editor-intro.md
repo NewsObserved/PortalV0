@@ -1,6 +1,6 @@
 # Editor intro — script for James to record
 
-Talking head, filmed on a phone, vertical. Roughly 40 seconds.
+Talking head, filmed on a phone, vertical. Roughly 35 seconds.
 The point of this video is that a real Black editor stands behind everything
 else on the feed. Nothing here should sound written.
 
@@ -9,7 +9,7 @@ that make it his, and inventing them would be worse than leaving them out.
 
 ---
 
-## Version A — the legacy lead (recommended)
+## The script
 
 > You've been watching these videos. Let me tell you who's behind them.
 >
@@ -22,31 +22,12 @@ that make it his, and inventing them would be worse than leaving them out.
 >
 > News Observed is that paper in your feed.
 >
-> Here's how it works. You send us what happened. We check it — public records,
-> real sources, people on the phone. And nothing runs until I've read it myself.
->
-> We use AI to get through records fast. We don't use it to decide what's true.
-> That's still a person. That's still me.
+> Here's how it works. You send us what happened. Our newsroom checks it —
+> public records, real sources, people on the phone. And nothing runs until
+> I've read it myself.
 >
 > So if something's happening on your block and nobody's covering it —
 > that's the whole reason we're here. Newsobserved.com. Tell us.
-
----
-
-## Version B — the shorter, harder open
-
-> Somebody asked me if this account is real.
->
-> I'm James Luckey. Observer Group Newspapers, Southern California. Black press
-> since 1974 — [X] years before I got here, and [X] years I've been running it.
->
-> Everything you've seen on this page came through our newsroom. You send it,
-> we verify it, I read it before it posts.
->
-> We're not a content page. We're a newspaper that finally figured out where
-> everybody went.
->
-> Newsobserved.com. Send us what they buried.
 
 ---
 
@@ -62,18 +43,6 @@ that make it his, and inventing them would be worse than leaving them out.
   Small stumbles are fine. Polish is not the goal here; being real is.
 - **Two takes minimum**, and use the second one. Everyone's first take is stiff.
 
-## On mentioning the AI
-
-Version A says it out loud. That is deliberate and it is the recommendation.
-
-The feed is AI-narrated and viewers will work that out eventually. Naming it
-first — and drawing the line in the right place, that a person decides what is
-true — turns a liability into the trust argument. Getting caught hiding it
-would cost far more than saying it plainly ever will.
-
-If he would rather not raise it, cut those two lines from Version A entirely.
-Do not replace them with anything that implies no AI is involved.
-
 ## Caption
 
 > The editor behind the page. Observer Group Newspapers, Black press in
@@ -84,3 +53,11 @@ Do not replace them with anything that implies no AI is involved.
 
 This is a profile video, not a daily post. Pin it to the top of the account so
 it is the first thing a new viewer sees after a story brings them in.
+
+## One line to keep true
+
+"Nothing runs until I've read it myself" is the load-bearing claim in this
+script, and it is the one viewers will hold him to. It is true today — every
+story passes through the Editorial Desk for review before it publishes. Keep
+it true. If that ever stops being how the desk works, this video has to come
+down.
